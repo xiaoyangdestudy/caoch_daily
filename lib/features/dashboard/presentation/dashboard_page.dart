@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:go_router/go_router.dart';
+import '../../../app/router/app_routes.dart';
 import '../domain/record_type.dart';
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
@@ -138,7 +140,13 @@ class DashboardPage extends StatelessWidget {
                       subValue: card.subValue,
                       progress: card.progress,
                       darkText: card.darkText,
-                      onTap: () => _openRecordSheet(context, card.type),
+                      onTap: () {
+                        if (card.type == RecordType.exercise) {
+                          context.push(AppRoutes.sports);
+                        } else {
+                          _openRecordSheet(context, card.type);
+                        }
+                      },
                     );
                   }, childCount: cardData.length),
                 ),

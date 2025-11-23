@@ -9,4 +9,5 @@ class AppRoutes {
   static const review = '/app/review';
   static const stats = '/app/stats';
   static const profile = '/app/profile';
+  static const sports = '/sports';
 }

@@ -8,6 +8,7 @@ import '../../features/profile/presentation/profile_page.dart';
 import '../../features/review/presentation/review_page.dart';
 import '../../features/shell/presentation/app_shell_page.dart';
 import '../../features/stats/presentation/stats_page.dart';
+import '../../features/sports/presentation/sports_page.dart';
 import '../../shared/providers/preferences_provider.dart';
 import 'app_routes.dart';
 
@@ -27,6 +28,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.onboarding,
         name: 'onboarding',
         builder: (context, state) => const OnboardingPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.sports,
+        name: 'sports',
+        builder: (context, state) => const SportsPage(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
