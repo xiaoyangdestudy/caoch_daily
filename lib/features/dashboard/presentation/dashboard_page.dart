@@ -243,7 +243,7 @@ class _HeroCard extends StatelessWidget {
                         Text(
                           '85',
                           style: TextStyle(
-                            fontSize: 56,
+                            fontSize: 48,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -359,7 +359,7 @@ class DashboardStatCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(22),
@@ -367,13 +367,12 @@ class DashboardStatCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(darkText ? 0.4 : 0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -381,7 +380,7 @@ class DashboardStatCard extends StatelessWidget {
                   child: Icon(
                     type.icon,
                     color: darkText ? Colors.black87 : Colors.white,
-                    size: 18,
+                    size: 16,
                   ),
                 ),
                 if (progress != null)
@@ -405,8 +404,10 @@ class DashboardStatCard extends StatelessWidget {
                   ),
               ],
             ),
+            const Spacer(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
@@ -417,14 +418,14 @@ class DashboardStatCard extends StatelessWidget {
                     color: darkText ? Colors.black87 : Colors.white,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       value,
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 26,
                         fontWeight: FontWeight.w900,
                         color: darkText ? Colors.black : Colors.white,
                       ),
@@ -446,9 +447,9 @@ class DashboardStatCard extends StatelessWidget {
                   ],
                 ),
                 if (progress != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Container(
-                    height: 6,
+                    height: 5,
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(darkText ? 0.1 : 0.3),
                       borderRadius: BorderRadius.circular(999),
