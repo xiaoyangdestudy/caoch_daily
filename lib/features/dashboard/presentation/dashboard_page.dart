@@ -69,6 +69,7 @@ class DashboardPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: CustomScrollView(
+            physics: const NeverScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(

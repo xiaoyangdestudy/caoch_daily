@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../shared/design/app_colors.dart';
+import '../../../shared/design/app_shadows.dart';
 import '../application/sports_providers.dart';
 import '../domain/workout_record.dart';
 
@@ -15,11 +16,11 @@ class ManualEntryPage extends ConsumerStatefulWidget {
 
 class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   WorkoutType _selectedType = WorkoutType.run;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  
+
   final _distanceController = TextEditingController();
   final _durationController = TextEditingController();
   final _caloriesController = TextEditingController();
@@ -62,93 +63,221 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
-        title: const Text('手动记录', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black87),
-          onPressed: () => context.pop(),
+        title: const Text(
+          '记录运动',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w900),
         ),
-        actions: [
-          TextButton(
-            onPressed: _saveRecord,
-            child: const Text('保存', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.black87),
+              onPressed: () => context.pop(),
+            ),
           ),
-        ],
+        ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            _buildSectionTitle('运动类型'),
+            const SizedBox(height: 16),
             _buildTypeSelector(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
+            _buildSectionTitle('时间与日期'),
+            const SizedBox(height: 16),
             _buildDateTimePicker(context),
-            const SizedBox(height: 24),
-            _buildNumberInput(
-              controller: _distanceController,
-              label: '距离 (km)',
-              icon: Icons.map_outlined,
-              validator: (v) => v!.isEmpty ? '请输入距离' : null,
+            const SizedBox(height: 32),
+            _buildSectionTitle('运动数据'),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildModernInput(
+                    controller: _distanceController,
+                    label: '距离',
+                    suffix: 'km',
+                    icon: Icons.map_outlined,
+                    color: AppColors.candyBlue,
+                    shadows: AppShadows.blue3d,
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? '请输入距离' : null,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildModernInput(
+                    controller: _durationController,
+                    label: '时长',
+                    suffix: 'min',
+                    icon: Icons.timer_outlined,
+                    color: AppColors.candyPurple,
+                    shadows: AppShadows.purple3d,
+                    keyboardType: TextInputType.number,
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? '请输入时长' : null,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            _buildNumberInput(
-              controller: _durationController,
-              label: '时长 (分钟)',
-              icon: Icons.timer_outlined,
-              validator: (v) => v!.isEmpty ? '请输入时长' : null,
-            ),
-            const SizedBox(height: 16),
-            _buildNumberInput(
+            _buildModernInput(
               controller: _caloriesController,
-              label: '消耗 (kcal)',
+              label: '消耗卡路里',
+              suffix: 'kcal',
               icon: Icons.local_fire_department_outlined,
-              validator: (v) => v!.isEmpty ? '请输入消耗' : null,
+              color: AppColors.candyOrange,
+              shadows: AppShadows.orange3d,
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.trim().isEmpty ? '请输入消耗' : null,
             ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _notesController,
-              decoration: InputDecoration(
-                labelText: '备注 / 心得',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                alignLabelWithHint: true,
+            const SizedBox(height: 32),
+            _buildSectionTitle('备注 (可选)'),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppShadows.white3d,
               ),
-              maxLines: 3,
+              child: TextFormField(
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  hintText: '写点什么...',
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(20),
+                ),
+                maxLines: 3,
+              ),
             ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xFF0F172A),
+                      offset: Offset(0, 8),
+                      blurRadius: 0,
+                    ),
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      offset: Offset(0, 18),
+                      blurRadius: 30,
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(28),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(28),
+                    onTap: _saveRecord,
+                    child: const SizedBox(
+                      height: 56,
+                      child: Center(
+                        child: Text(
+                          '保存记录',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+        color: Colors.black87,
+      ),
+    );
+  }
+
   Widget _buildTypeSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('运动类型', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: WorkoutType.values.map((type) {
-            final isSelected = _selectedType == type;
-            return ChoiceChip(
-              label: Text(type.label),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) setState(() => _selectedType = type);
-              },
-              selectedColor: AppColors.candyBlue,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.bold,
+    return SizedBox(
+      height: 100,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: WorkoutType.values.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          final type = WorkoutType.values[index];
+          final isSelected = _selectedType == type;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedType = type),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 80,
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.black : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : AppShadows.white3d,
+                border: isSelected
+                    ? null
+                    : Border.all(color: Colors.transparent),
               ),
-            );
-          }).toList(),
-        ),
-      ],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    type.iconPath,
+                    width: 32,
+                    height: 32,
+                    color: isSelected ? Colors.white : Colors.black87,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.fitness_center,
+                      color: isSelected ? Colors.white : Colors.black87,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    type.label,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -156,7 +285,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
+          child: GestureDetector(
             onTap: () async {
               final date = await showDatePicker(
                 context: context,
@@ -166,19 +295,36 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
               );
               if (date != null) setState(() => _selectedDate = date);
             },
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: '日期',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.calendar_today),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppShadows.white3d,
               ),
-              child: Text('${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}'),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 20,
+                    color: AppColors.candyBlue,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${_selectedDate.month}月${_selectedDate.day}日',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
-          child: InkWell(
+          child: GestureDetector(
             onTap: () async {
               final time = await showTimePicker(
                 context: context,
@@ -186,13 +332,30 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
               );
               if (time != null) setState(() => _selectedTime = time);
             },
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: '时间',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: const Icon(Icons.access_time),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppShadows.white3d,
               ),
-              child: Text(_selectedTime.format(context)),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 20,
+                    color: AppColors.candyPurple,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _selectedTime.format(context),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -200,21 +363,77 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
-  Widget _buildNumberInput({
+  Widget _buildModernInput({
     required TextEditingController controller,
     required String label,
+    required String suffix,
     required IconData icon,
+    required Color color,
+    required List<BoxShadow> shadows,
+    TextInputType keyboardType = const TextInputType.numberWithOptions(
+      decimal: true,
+    ),
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: shadows,
       ),
-      validator: validator,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  validator: validator,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black87,
+                  ),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: '0',
+                  ),
+                ),
+              ),
+              Text(
+                suffix,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black45,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
