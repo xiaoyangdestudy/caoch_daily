@@ -8,16 +8,20 @@ import '../../features/profile/presentation/profile_page.dart';
 import '../../features/review/presentation/review_page.dart';
 import '../../features/shell/presentation/app_shell_page.dart';
 import '../../features/stats/presentation/stats_page.dart';
+import '../../shared/providers/preferences_provider.dart';
 import 'app_routes.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
+  final hasCompletedOnboarding = ref.watch(hasCompletedOnboardingProvider);
+
   return GoRouter(
     debugLogDiagnostics: true,
-    initialLocation: AppRoutes.onboarding,
+    initialLocation: hasCompletedOnboarding ? AppRoutes.home : AppRoutes.onboarding,
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        redirect: (_, __) => AppRoutes.onboarding,
+        redirect: (_, __) =>
+            hasCompletedOnboarding ? AppRoutes.home : AppRoutes.onboarding,
       ),
       GoRoute(
         path: AppRoutes.onboarding,

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../shared/design/app_colors.dart';
+import '../../../shared/providers/preferences_provider.dart';
 
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> {
+class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   int step = 0;
 
   static const _steps = [
@@ -35,15 +37,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
     ),
   ];
 
-  void _next() {
-    if (step < _steps.length - 1) {
-      setState(() => step++);
-    } else {
+  Future<void> _completeOnboarding() async {
+    await ref.read(preferencesServiceProvider).setOnboardingCompleted();
+    if (mounted) {
       context.go(AppRoutes.home);
     }
   }
 
-  void _skip() => context.go(AppRoutes.home);
+  void _next() {
+    if (step < _steps.length - 1) {
+      setState(() => step++);
+    } else {
+      _completeOnboarding();
+    }
+  }
+
+  void _skip() => _completeOnboarding();
 
   @override
   Widget build(BuildContext context) {

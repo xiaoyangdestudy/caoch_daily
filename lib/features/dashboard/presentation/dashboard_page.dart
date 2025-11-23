@@ -57,91 +57,100 @@ class DashboardPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                child: Row(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _dateLabel,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.black45,
-                            letterSpacing: 2,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _dateLabel,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black45,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Alex',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: AppShadows.cardSoft,
+                        ),
+                        child: const CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            'https://api.dicebear.com/7.x/avataaars/png?seed=Alex',
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Alex',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: AppShadows.cardSoft,
                       ),
-                      child: const CircleAvatar(
-                        backgroundImage: NetworkImage(
-                          'https://api.dicebear.com/7.x/avataaars/png?seed=Alex',
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: const _HeroCard(summary: '状态回升！记得多喝水。'),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: const _HeroCard(summary: '状态回升！记得多喝水。'),
                 ),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final card = cardData[index];
-                  return DashboardStatCard(
-                    title: card.title,
-                    type: card.type,
-                    value: card.value,
-                    subValue: card.subValue,
-                    progress: card.progress,
-                    darkText: card.darkText,
-                    onTap: () => _openRecordSheet(context, card.type),
-                  );
-                }, childCount: cardData.length),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 4, 24, 120),
-                child: _ReviewBanner(onTap: () {}),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1,
+                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final card = cardData[index];
+                    return DashboardStatCard(
+                      title: card.title,
+                      type: card.type,
+                      value: card.value,
+                      subValue: card.subValue,
+                      progress: card.progress,
+                      darkText: card.darkText,
+                      onTap: () => _openRecordSheet(context, card.type),
+                    );
+                  }, childCount: cardData.length),
+                ),
               ),
-            ),
-          ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 4, 24, 120),
+                  child: _ReviewBanner(onTap: () {}),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

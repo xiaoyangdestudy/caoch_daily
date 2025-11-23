@@ -217,13 +217,14 @@ class _NavItem extends StatelessWidget {
               color: selected ? AppColors.candyBlue : Colors.grey,
             ),
           ),
-          AnimatedOpacity(
-            opacity: selected ? 1 : 0,
+          AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: selected ? AppColors.candyBlue : Colors.grey.shade600,
             ),
+            child: Text(label),
           ),
         ],
       ),
