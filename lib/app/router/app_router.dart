@@ -11,6 +11,7 @@ import '../../features/stats/presentation/stats_page.dart';
 import '../../features/sports/presentation/sports_page.dart';
 import '../../features/diet/presentation/diet_page.dart';
 import '../../features/diet/presentation/ai_food_recognition_page.dart';
+import '../../features/sports/presentation/manual_entry_page.dart';
 import '../../shared/providers/preferences_provider.dart';
 import 'app_routes.dart';
 
@@ -35,6 +36,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.sports,
         name: 'sports',
         builder: (context, state) => const SportsPage(),
+        routes: [
+          GoRoute(
+            path: 'manual-entry',
+            builder: (context, state) => const ManualEntryPage(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.diet,

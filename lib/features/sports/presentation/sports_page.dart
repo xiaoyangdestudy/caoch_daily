@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
+import '../../../app/router/app_routes.dart';
+import '../application/sports_providers.dart';
+import '../domain/workout_record.dart';
 
-class SportsPage extends StatelessWidget {
+class SportsPage extends ConsumerWidget {
   const SportsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weeklyStats = ref.watch(weeklyStatsProvider);
+    final recentRecordsAsync = ref.watch(workoutListProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
       body: CustomScrollView(
@@ -47,9 +54,9 @@ class SportsPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '3/5 次运动',
-                        style: TextStyle(
+                      Text(
+                        '${weeklyStats['count']} 次运动',
+                        style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
                           color: Colors.black87,
@@ -76,7 +83,7 @@ class SportsPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const _StartWorkoutCard(),
+                  const _LogWorkoutCard(),
                   const SizedBox(height: 32),
                   const Text(
                     '本周数据',
@@ -87,32 +94,32 @@ class SportsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     children: [
                       Expanded(
                         child: _StatBox(
                           label: '总距离',
-                          value: '12.5',
+                          value: (weeklyStats['distance'] as double).toStringAsFixed(1),
                           unit: 'km',
                           icon: Icons.map_outlined,
                           color: AppColors.candyBlue,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _StatBox(
                           label: '消耗',
-                          value: '840',
+                          value: (weeklyStats['calories'] as int).toString(),
                           unit: 'kcal',
                           icon: Icons.local_fire_department_outlined,
                           color: AppColors.candyOrange,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _StatBox(
                           label: '时长',
-                          value: '3.2',
+                          value: (weeklyStats['duration'] as double).toStringAsFixed(1),
                           unit: 'hr',
                           icon: Icons.timer_outlined,
                           color: AppColors.candyPurple,
@@ -145,31 +152,27 @@ class SportsPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const _ActivityItem(
-                    title: '晨间慢跑',
-                    date: '今天 07:30',
-                    value: '5.2 km',
-                    duration: '32 min',
-                    icon: Icons.directions_run,
-                    color: AppColors.candyPink,
-                  ),
-                  const SizedBox(height: 12),
-                  const _ActivityItem(
-                    title: '力量训练',
-                    date: '昨天 18:45',
-                    value: '340 kcal',
-                    duration: '45 min',
-                    icon: Icons.fitness_center,
-                    color: AppColors.candyPurple,
-                  ),
-                  const SizedBox(height: 12),
-                  const _ActivityItem(
-                    title: '轻松骑行',
-                    date: '11月20日',
-                    value: '12.0 km',
-                    duration: '55 min',
-                    icon: Icons.directions_bike,
-                    color: AppColors.candyBlue,
+                  recentRecordsAsync.when(
+                    data: (records) {
+                      if (records.isEmpty) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Text('暂无记录，快去运动吧！'),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: records.take(5).map((record) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _ActivityItem(record: record),
+                          );
+                        }).toList(),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Text('加载失败: $e'),
                   ),
                 ],
               ),
@@ -181,13 +184,13 @@ class SportsPage extends StatelessWidget {
   }
 }
 
-class _StartWorkoutCard extends StatelessWidget {
-  const _StartWorkoutCard();
+class _LogWorkoutCard extends StatelessWidget {
+  const _LogWorkoutCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 220,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.circular(32),
@@ -199,121 +202,103 @@ class _StartWorkoutCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Background decoration
-          Positioned(
-            right: -40,
-            top: -40,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.candyLime.withOpacity(0.2),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.candyLime.withOpacity(0.4),
-                    blurRadius: 60,
-                    spreadRadius: 10,
-                  ),
-                ],
-              ),
+          const Text(
+            '记录运动',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.directions_run,
-                            color: AppColors.candyLime,
-                            size: 16,
-                          ),
-                          SizedBox(width: 6),
-                          Text(
-                            '户外跑步',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            color: Colors.white70,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                const Text(
-                  '准备好了吗？',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '开始运动',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: AppColors.candyLime,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.candyLime.withOpacity(0.6),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        size: 40,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          const SizedBox(height: 4),
+          const Text(
+            '记录每一次汗水',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
             ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _ActionButton(
+                  icon: Icons.edit_note_rounded,
+                  label: '手动记录',
+                  color: AppColors.candyLime,
+                  onTap: () => context.push(AppRoutes.manualSportsEntry),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _ActionButton(
+                  icon: Icons.center_focus_weak_rounded,
+                  label: '截图导入',
+                  color: AppColors.candyBlue,
+                  onTap: () {
+                    // TODO: Implement screenshot import
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('截图导入功能开发中...')),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.15),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: Colors.black, size: 24),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -371,21 +356,9 @@ class _StatBox extends StatelessWidget {
 }
 
 class _ActivityItem extends StatelessWidget {
-  const _ActivityItem({
-    required this.title,
-    required this.date,
-    required this.value,
-    required this.duration,
-    required this.icon,
-    required this.color,
-  });
+  final WorkoutRecord record;
 
-  final String title;
-  final String date;
-  final String value;
-  final String duration;
-  final IconData icon;
-  final Color color;
+  const _ActivityItem({required this.record});
 
   @override
   Widget build(BuildContext context) {
@@ -402,11 +375,16 @@ class _ActivityItem extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: AppColors.candyPink.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, color: color, size: 24),
+            child: Image.asset(
+              record.type.iconPath,
+              width: 24,
+              height: 24,
+              errorBuilder: (_, __, ___) => const Icon(Icons.fitness_center, color: AppColors.candyPink),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -414,7 +392,7 @@ class _ActivityItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  record.type.label,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -423,7 +401,7 @@ class _ActivityItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  date,
+                  '${record.startTime.month}月${record.startTime.day}日 ${record.startTime.hour}:${record.startTime.minute.toString().padLeft(2, '0')}',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -437,7 +415,7 @@ class _ActivityItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                value,
+                '${record.distanceKm} km',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
@@ -446,7 +424,7 @@ class _ActivityItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                duration,
+                '${record.durationMinutes} min',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
