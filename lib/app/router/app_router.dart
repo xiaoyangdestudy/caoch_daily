@@ -9,6 +9,8 @@ import '../../features/review/presentation/review_page.dart';
 import '../../features/shell/presentation/app_shell_page.dart';
 import '../../features/stats/presentation/stats_page.dart';
 import '../../features/sports/presentation/sports_page.dart';
+import '../../features/diet/presentation/diet_page.dart';
+import '../../features/diet/presentation/ai_food_recognition_page.dart';
 import '../../shared/providers/preferences_provider.dart';
 import 'app_routes.dart';
 
@@ -33,6 +35,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.sports,
         name: 'sports',
         builder: (context, state) => const SportsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.diet,
+        name: 'diet',
+        builder: (context, state) => const DietPage(),
+        routes: [
+          GoRoute(
+            path: 'ai-recognition',
+            builder: (context, state) => const AiFoodRecognitionPage(),
+          ),
+        ],
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

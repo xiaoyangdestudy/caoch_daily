@@ -143,6 +143,8 @@ class DashboardPage extends StatelessWidget {
                       onTap: () {
                         if (card.type == RecordType.exercise) {
                           context.push(AppRoutes.sports);
+                        } else if (card.type == RecordType.diet) {
+                          context.push(AppRoutes.diet);
                         } else {
                           _openRecordSheet(context, card.type);
                         }

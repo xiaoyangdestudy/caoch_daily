@@ -36,4 +36,8 @@ class AppShadows {
   static List<BoxShadow> cardSoft = const [
     BoxShadow(color: Color(0x1A64646F), offset: Offset(0, 12), blurRadius: 30),
   ];
+  static List<BoxShadow> orange3d = const [
+    BoxShadow(color: Color(0xFFD67D00), offset: Offset(0, 6), blurRadius: 0),
+    BoxShadow(color: Color(0x4CFF9F1C), offset: Offset(0, 12), blurRadius: 16),
+  ];
 }

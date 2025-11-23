@@ -10,4 +10,6 @@ class AppRoutes {
   static const stats = '/app/stats';
   static const profile = '/app/profile';
   static const sports = '/sports';
+  static const diet = '/diet';
+  static const aiFoodRecognition = '/diet/ai-recognition';
 }
