@@ -13,4 +13,6 @@ class AppRoutes {
   static const diet = '/diet';
   static const aiFoodRecognition = '/diet/ai-recognition';
   static const manualSportsEntry = '/sports/manual-entry';
+  static const sleep = '/sleep';
+  static const work = '/work';
 }

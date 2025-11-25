@@ -146,6 +146,10 @@ class DashboardPage extends StatelessWidget {
                           context.push(AppRoutes.sports);
                         } else if (card.type == RecordType.diet) {
                           context.push(AppRoutes.diet);
+                        } else if (card.type == RecordType.sleep) {
+                          context.push(AppRoutes.sleep);
+                        } else if (card.type == RecordType.work) {
+                          context.push(AppRoutes.work);
                         } else {
                           _openRecordSheet(context, card.type);
                         }

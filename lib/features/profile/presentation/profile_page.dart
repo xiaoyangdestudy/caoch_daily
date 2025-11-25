@@ -1,153 +1,207 @@
 import 'package:flutter/material.dart';
-
-import '../../../shared/design/app_colors.dart';
-import '../../../shared/design/app_shadows.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
-  static const _menuItems = [
-    _ProfileMenuData(
-      label: '健康目标设置',
-      category: '目标',
-      hint: '运动/饮食/睡眠阈值',
-      icon: Icons.fitness_center,
-      color: AppColors.candyPink,
-    ),
-    _ProfileMenuData(
-      label: '工作 & 学习目标',
-      category: '目标',
-      hint: '专注任务与时间块',
-      icon: Icons.work_outline,
-      color: AppColors.candyBlue,
-    ),
-    _ProfileMenuData(
-      label: '阅读清单',
-      category: '目标',
-      hint: '打造你的知识库',
-      icon: Icons.menu_book_outlined,
-      color: AppColors.candyPurple,
-    ),
-    _ProfileMenuData(
-      label: '通知提醒',
-      category: '偏好',
-      hint: '复盘与打卡提醒',
-      icon: Icons.notifications_active,
-      color: AppColors.candyYellow,
-    ),
-    _ProfileMenuData(
-      label: 'AI 风格设置',
-      category: '偏好',
-      hint: '选择激励语气',
-      icon: Icons.auto_fix_high_outlined,
-      color: AppColors.candyOrange,
-    ),
-    _ProfileMenuData(
-      label: '隐私与数据',
-      category: '隐私',
-      hint: '导出 / 删除数据',
-      icon: Icons.lock_outline,
-      color: AppColors.candyGreen,
-    ),
-    _ProfileMenuData(
-      label: '帮助与反馈',
-      category: '支持',
-      hint: '对话开发者团队',
-      icon: Icons.help_outline,
-      color: AppColors.candyMint,
-    ),
-    _ProfileMenuData(
-      label: '关于',
-      category: '支持',
-      hint: '了解日常教练',
-      icon: Icons.info_outline,
-      color: AppColors.candyBlue,
-    ),
-  ];
-
-  static const _quickActions = [
-    _QuickActionData(label: '同步数据', icon: Icons.sync),
-    _QuickActionData(label: '导出报告', icon: Icons.share_rounded),
-    _QuickActionData(label: '切换主题', icon: Icons.color_lens_outlined),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-          child: _ProfileContent(
-            quickActions: _quickActions,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          '我的',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
           ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.black),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Column(
+          children: [
+            const _ProfileHeader(),
+            const SizedBox(height: 32),
+            const _ProBanner(),
+            const SizedBox(height: 32),
+            _SettingsGroup(
+              title: '健康数据',
+              items: [
+                _SettingsItem(
+                  icon: Icons.favorite_border,
+                  label: '我的身体数据',
+                  onTap: () {},
+                ),
+                _SettingsItem(
+                  icon: Icons.history,
+                  label: '运动记录',
+                  onTap: () {},
+                ),
+                _SettingsItem(
+                  icon: Icons.pie_chart_outline,
+                  label: '健康周报',
+                  onTap: () {},
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _SettingsGroup(
+              title: '偏好设置',
+              items: [
+                _SettingsItem(
+                  icon: Icons.notifications_none,
+                  label: '通知提醒',
+                  onTap: () {},
+                ),
+                _SettingsItem(
+                  icon: Icons.language,
+                  label: '语言',
+                  value: '简体中文',
+                  onTap: () {},
+                ),
+                _SettingsItem(
+                  icon: Icons.dark_mode_outlined,
+                  label: '深色模式',
+                  value: '跟随系统',
+                  onTap: () {},
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _SettingsGroup(
+              title: '其他',
+              items: [
+                _SettingsItem(
+                  icon: Icons.help_outline,
+                  label: '帮助与反馈',
+                  onTap: () {},
+                ),
+                _SettingsItem(
+                  icon: Icons.info_outline,
+                  label: '关于我们',
+                  onTap: () {},
+                ),
+              ],
+            ),
+            const SizedBox(height: 48),
+            const Text(
+              'v1.0.0',
+              style: TextStyle(color: Colors.black26, fontSize: 12),
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ProfileContent extends StatelessWidget {
-  const _ProfileContent({required this.quickActions});
-
-  final List<_QuickActionData> quickActions;
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[200],
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://api.dicebear.com/7.x/avataaars/png?seed=Alex',
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
-                    '个人中心 👤',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+                children: [
+                  const Text(
+                    'Alex',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    '让习惯、偏好与数据，都在这里被照顾',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Keep moving forward',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black45,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final action in quickActions) ...[
-                  IconButton(
-                    icon: Icon(action.icon),
-                    onPressed: () {},
-                    tooltip: action.label,
-                    iconSize: 22,
-                    color: Colors.black87,
-                  ),
-                ],
-              ],
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.edit_outlined, color: Colors.black54),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        const _ProfileHeroCard(),
-        const SizedBox(height: 20),
-        _MenuPager(items: ProfilePage._menuItems),
-        const SizedBox(height: 16),
-        const Center(
-          child: Text(
-            'v1.0.0 日常教练',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black38,
-            ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: const [
+            _StatItem(value: '28', label: '活跃天数'),
+            _StatItem(value: '12', label: '完成目标'),
+            _StatItem(value: '4.5h', label: '日均专注'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _StatItem({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black45,
           ),
         ),
       ],
@@ -155,240 +209,143 @@ class _ProfileContent extends StatelessWidget {
   }
 }
 
-class _MenuPager extends StatelessWidget {
-  const _MenuPager({required this.items});
-
-  final List<_ProfileMenuData> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final item in items) ...[
-          _ProfileMenuTile(data: item),
-          const SizedBox(height: 16),
-        ],
-      ],
-    );
-  }
-}
-
-class _ProfileHeroCard extends StatelessWidget {
-  const _ProfileHeroCard();
+class _ProBanner extends StatelessWidget {
+  const _ProBanner();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.candyBlue, AppColors.candyLime],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x332EC4B6),
-            offset: Offset(0, 18),
-            blurRadius: 30,
-          ),
-        ],
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Stack(
+      child: Row(
         children: [
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: const Icon(Icons.star_rounded, color: Colors.amber, size: 24),
           ),
-          Row(
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.2),
-                  border: Border.all(color: Colors.white, width: 3),
-                ),
-                alignment: Alignment.center,
-                child: const Text('🥑', style: TextStyle(fontSize: 34)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Alex Designer',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Text(
-                        '改变自己的第 28 天',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.candyBlue,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  '升级到 Pro',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-                onPressed: () {},
-                child: const Text(
-                  '编辑资料',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                SizedBox(height: 2),
+                Text(
+                  '解锁更多高级数据分析',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
         ],
       ),
     );
   }
 }
 
-class _ProfileMenuTile extends StatelessWidget {
-  const _ProfileMenuTile({required this.data});
+class _SettingsGroup extends StatelessWidget {
+  final String title;
+  final List<Widget> items;
 
-  final _ProfileMenuData data;
+  const _SettingsGroup({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
-    final gradient = LinearGradient(
-      colors: [data.color, data.color.withOpacity(0.8)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: () {},
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 88),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: gradient,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: data.color.withOpacity(0.25),
-                offset: const Offset(0, 8),
-                blurRadius: 16,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(data.icon, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      data.category.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white70,
-                        letterSpacing: 1.5,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      data.label,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      data.hint,
-                      style: const TextStyle(fontSize: 12, color: Colors.white70),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 24),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black45,
+            ),
           ),
         ),
-      ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[100]!),
+          ),
+          child: Column(
+            children: items,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ProfileMenuData {
-  const _ProfileMenuData({
-    required this.label,
-    required this.category,
-    required this.hint,
+class _SettingsItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? value;
+  final VoidCallback onTap;
+
+  const _SettingsItem({
     required this.icon,
-    required this.color,
+    required this.label,
+    this.value,
+    required this.onTap,
   });
 
-  final String label;
-  final String category;
-  final String hint;
-  final IconData icon;
-  final Color color;
-}
-
-class _QuickActionData {
-  const _QuickActionData({required this.label, required this.icon});
-
-  final String label;
-  final IconData icon;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: Colors.black87),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            if (value != null) ...[
+              Text(
+                value!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.black45,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black26),
+          ],
+        ),
+      ),
+    );
+  }
 }
