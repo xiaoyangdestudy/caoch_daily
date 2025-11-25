@@ -1,12 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/providers/preferences_provider.dart';
 import '../data/workout_repository.dart';
 import '../domain/workout_record.dart';
 
-final workoutRepositoryProvider = Provider((ref) => WorkoutRepository());
-
-final workoutListProvider = AsyncNotifierProvider<WorkoutListNotifier, List<WorkoutRecord>>(() {
-  return WorkoutListNotifier();
+final workoutRepositoryProvider = Provider((ref) {
+  final store = ref.watch(localStoreProvider);
+  return WorkoutRepository(store);
 });
+
+final workoutListProvider =
+    AsyncNotifierProvider<WorkoutListNotifier, List<WorkoutRecord>>(() {
+      return WorkoutListNotifier();
+    });
 
 class WorkoutListNotifier extends AsyncNotifier<List<WorkoutRecord>> {
   late final WorkoutRepository _repository;
@@ -24,7 +29,7 @@ class WorkoutListNotifier extends AsyncNotifier<List<WorkoutRecord>> {
       return _repository.getAll();
     });
   }
-  
+
   Future<void> deleteRecord(String id) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -36,7 +41,7 @@ class WorkoutListNotifier extends AsyncNotifier<List<WorkoutRecord>> {
 
 final weeklyStatsProvider = Provider.autoDispose((ref) {
   final recordsAsync = ref.watch(workoutListProvider);
-  
+
   return recordsAsync.when(
     data: (records) {
       final now = DateTime.now();
@@ -45,7 +50,8 @@ final weeklyStatsProvider = Provider.autoDispose((ref) {
       final endOfWeek = startOfWeek.add(const Duration(days: 7));
 
       final weeklyRecords = records.where((r) {
-        return r.startTime.isAfter(startOfWeek) && r.startTime.isBefore(endOfWeek);
+        return r.startTime.isAfter(startOfWeek) &&
+            r.startTime.isBefore(endOfWeek);
       }).toList();
 
       double totalDistance = 0;
@@ -65,7 +71,17 @@ final weeklyStatsProvider = Provider.autoDispose((ref) {
         'duration': totalDuration / 60.0, // hours
       };
     },
-    loading: () => {'count': 0, 'distance': 0.0, 'calories': 0, 'duration': 0.0},
-    error: (_, __) => {'count': 0, 'distance': 0.0, 'calories': 0, 'duration': 0.0},
+    loading: () => {
+      'count': 0,
+      'distance': 0.0,
+      'calories': 0,
+      'duration': 0.0,
+    },
+    error: (_, __) => {
+      'count': 0,
+      'distance': 0.0,
+      'calories': 0,
+      'duration': 0.0,
+    },
   );
 });

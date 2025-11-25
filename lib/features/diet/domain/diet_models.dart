@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'diet_models.freezed.dart';
+part 'diet_models.g.dart';
 
 enum MealType {
   breakfast('早餐', Icons.wb_twilight),
@@ -11,42 +15,37 @@ enum MealType {
   const MealType(this.label, this.icon);
 }
 
-class FoodItem {
-  final String id;
-  final String name;
-  final int calories;
-  final double protein;
-  final double carbs;
-  final double fat;
-  final String? imageUrl;
+@freezed
+class FoodItem with _$FoodItem {
+  const factory FoodItem({
+    required String id,
+    required String name,
+    required int calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+    String? imageUrl,
+  }) = _FoodItem;
 
-  const FoodItem({
-    required this.id,
-    required this.name,
-    required this.calories,
-    required this.protein,
-    required this.carbs,
-    required this.fat,
-    this.imageUrl,
-  });
+  factory FoodItem.fromJson(Map<String, dynamic> json) =>
+      _$FoodItemFromJson(json);
 }
 
-class DailyDiet {
-  final DateTime date;
-  final List<FoodItem> breakfast;
-  final List<FoodItem> lunch;
-  final List<FoodItem> dinner;
-  final List<FoodItem> snacks;
+@freezed
+class MealRecord with _$MealRecord {
+  const MealRecord._();
 
-  const DailyDiet({
-    required this.date,
-    this.breakfast = const [],
-    this.lunch = const [],
-    this.dinner = const [],
-    this.snacks = const [],
-  });
+  const factory MealRecord({
+    required String id,
+    required MealType mealType,
+    required DateTime timestamp,
+    @Default([]) List<FoodItem> items,
+    String? notes,
+  }) = _MealRecord;
+
+  factory MealRecord.fromJson(Map<String, dynamic> json) =>
+      _$MealRecordFromJson(json);
 
   int get totalCalories =>
-      [...breakfast, ...lunch, ...dinner, ...snacks]
-          .fold(0, (sum, item) => sum + item.calories);
+      items.fold(0, (previousValue, item) => previousValue + item.calories);
 }

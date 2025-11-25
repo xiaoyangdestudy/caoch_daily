@@ -2,18 +2,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/preferences_service.dart';
+import '../services/local_store.dart';
 
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
-  return await SharedPreferences.getInstance();
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('SharedPreferences 需要在 main 中注入');
+});
+
+final localStoreProvider = Provider<LocalStore>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return LocalStore(prefs);
 });
 
 final preferencesServiceProvider = Provider<PreferencesService>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return prefs.when(
-    data: (sharedPrefs) => PreferencesService(sharedPrefs),
-    loading: () => throw Exception('SharedPreferences not initialized'),
-    error: (error, stack) => throw error,
-  );
+  return PreferencesService(prefs);
 });
 
 final hasCompletedOnboardingProvider = Provider<bool>((ref) {

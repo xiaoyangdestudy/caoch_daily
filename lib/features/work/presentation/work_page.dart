@@ -1,52 +1,136 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../shared/design/app_colors.dart';
-import '../../../shared/design/app_shadows.dart';
-
 import 'dart:async';
 
-class WorkPage extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../shared/design/app_colors.dart';
+import '../../work/application/work_providers.dart';
+import '../../work/domain/focus_session.dart';
+
+class WorkPage extends ConsumerStatefulWidget {
   const WorkPage({super.key});
 
   @override
-  State<WorkPage> createState() => _WorkPageState();
+  ConsumerState<WorkPage> createState() => _WorkPageState();
 }
 
-class _WorkPageState extends State<WorkPage> {
+class _WorkPageState extends ConsumerState<WorkPage> {
+  static const int _defaultSeconds = 25 * 60;
+
   Timer? _timer;
-  static const int _defaultTime = 25 * 60; // 25 minutes
-  int _remainingSeconds = _defaultTime;
+  int _remainingSeconds = _defaultSeconds;
   bool _isRunning = false;
+  DateTime? _sessionStart;
+  String _taskName = '深度专注';
+
+  String get _timerString {
+    final minutes = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
 
   void _toggleTimer() {
     if (_isRunning) {
-      _timer?.cancel();
-      setState(() {
-        _isRunning = false;
-      });
+      _completeSession(completed: false);
     } else {
       setState(() {
         _isRunning = true;
+        _remainingSeconds = _defaultSeconds;
+        _sessionStart = DateTime.now();
       });
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
-          setState(() {
-            _remainingSeconds--;
-          });
+          setState(() => _remainingSeconds--);
         } else {
-          _stopTimer();
-          // TODO: Show completion notification
+          _completeSession(completed: true);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('恭喜完成 25 分钟专注！')));
         }
       });
     }
   }
 
-  void _stopTimer() {
+  Future<void> _completeSession({required bool completed}) async {
     _timer?.cancel();
+
+    final start = _sessionStart;
+    if (start != null) {
+      final elapsed = _defaultSeconds - _remainingSeconds;
+      final end = start.add(
+        Duration(seconds: completed ? _defaultSeconds : elapsed),
+      );
+      await ref
+          .read(focusSessionsProvider.notifier)
+          .logSession(
+            start: start,
+            end: end,
+            targetMinutes: _defaultSeconds ~/ 60,
+            taskName: _taskName,
+            completed: completed,
+          );
+    }
+
     setState(() {
       _isRunning = false;
-      _remainingSeconds = _defaultTime;
+      _remainingSeconds = _defaultSeconds;
+      _sessionStart = null;
     });
+  }
+
+  Future<void> _editTaskName() async {
+    final controller = TextEditingController(text: _taskName);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('设置当前任务'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: '例如：整理周报'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+    if (name != null && name.isNotEmpty) {
+      setState(() => _taskName = name);
+    }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  List<_FocusDayStat> _buildWeeklyStats(List<FocusSession> sessions) {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final stats = <_FocusDayStat>[];
+    for (int i = 0; i < 7; i++) {
+      final day = startOfWeek.add(Duration(days: i));
+      final daySessions = sessions.where(
+        (session) => _isSameDay(session.startTime, day),
+      );
+      final hours = daySessions.fold<double>(
+        0,
+        (sum, session) => sum + session.actualDuration.inMinutes / 60,
+      );
+      stats.add(
+        _FocusDayStat(
+          label: ['一', '二', '三', '四', '五', '六', '日'][i],
+          hours: hours,
+        ),
+      );
+    }
+    return stats;
   }
 
   @override
@@ -55,14 +139,10 @@ class _WorkPageState extends State<WorkPage> {
     super.dispose();
   }
 
-  String get _timerString {
-    final minutes = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
-    final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final sessionsAsync = ref.watch(focusSessionsProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -82,27 +162,50 @@ class _WorkPageState extends State<WorkPage> {
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              _FocusTimerCard(
-                timeString: _timerString,
-                isRunning: _isRunning,
+      body: sessionsAsync.when(
+        data: (sessions) {
+          final today = DateTime.now();
+          final todaySessions = sessions.where(
+            (session) => _isSameDay(session.startTime, today),
+          );
+          final completedCount = todaySessions
+              .where((session) => session.completed)
+              .length;
+          final totalHours = todaySessions.fold<double>(
+            0,
+            (sum, session) => sum + session.actualDuration.inMinutes / 60,
+          );
+          final weeklyStats = _buildWeeklyStats(sessions);
+
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  _FocusTimerCard(
+                    timeString: _timerString,
+                    isRunning: _isRunning,
+                    taskName: _taskName,
+                    onEditTask: _editTaskName,
+                  ),
+                  const SizedBox(height: 24),
+                  _TaskSummaryCard(
+                    completedCount: completedCount,
+                    totalHours: totalHours,
+                  ),
+                  const SizedBox(height: 24),
+                  _ProductivityChart(stats: weeklyStats),
+                  const SizedBox(height: 24),
+                  _RecentSessionsList(sessions: sessions.take(5).toList()),
+                  const SizedBox(height: 32),
+                  _StartFocusButton(isRunning: _isRunning, onTap: _toggleTimer),
+                ],
               ),
-              const SizedBox(height: 40),
-              const _TaskSummaryCard(),
-              const SizedBox(height: 40),
-              const _ProductivityChart(),
-              const SizedBox(height: 40),
-              _StartFocusButton(
-                isRunning: _isRunning,
-                onTap: _toggleTimer,
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('加载失败：$error')),
       ),
     );
   }
@@ -112,93 +215,110 @@ class _FocusTimerCard extends StatelessWidget {
   const _FocusTimerCard({
     required this.timeString,
     required this.isRunning,
+    required this.taskName,
+    required this.onEditTask,
   });
 
   final String timeString;
   final bool isRunning;
+  final String taskName;
+  final VoidCallback onEditTask;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 240,
-          height: 240,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isRunning ? Colors.black : Colors.black12,
-              width: isRunning ? 2 : 1,
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  timeString,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 64,
-                    fontWeight: FontWeight.w200,
-                    letterSpacing: -2,
-                    height: 1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isRunning ? Colors.black : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    isRunning ? 'RUNNING' : 'FOCUS',
-                    style: TextStyle(
-                      color: isRunning ? Colors.white : Colors.black54,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: isRunning ? Colors.black : Colors.black12,
+          width: 1.5,
         ),
-      ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            timeString,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 64,
+              fontWeight: FontWeight.w200,
+              letterSpacing: -2,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isRunning ? Colors.black : Colors.grey[100],
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              isRunning ? 'RUNNING' : 'FOCUS',
+              style: TextStyle(
+                color: isRunning ? Colors.white : Colors.black54,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                taskName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              IconButton(
+                onPressed: onEditTask,
+                icon: const Icon(Icons.edit, size: 18),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _TaskSummaryCard extends StatelessWidget {
-  const _TaskSummaryCard();
+  const _TaskSummaryCard({
+    required this.completedCount,
+    required this.totalHours,
+  });
+
+  final int completedCount;
+  final double totalHours;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatItem(
-            'Completed',
-            '8',
-            'Tasks',
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: Colors.grey[50],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatItem('已完成', completedCount.toString(), 'Sessions'),
           ),
-        ),
-        Container(
-          width: 1,
-          height: 40,
-          color: Colors.black12,
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-        ),
-        Expanded(
-          child: _buildStatItem(
-            'Duration',
-            '4.5',
-            'Hours',
+          Container(width: 1, height: 48, color: Colors.black12),
+          Expanded(
+            child: _buildStatItem(
+              '投入时长',
+              totalHours.toStringAsFixed(1),
+              'Hours',
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -229,10 +349,18 @@ class _TaskSummaryCard extends StatelessWidget {
 }
 
 class _ProductivityChart extends StatelessWidget {
-  const _ProductivityChart();
+  const _ProductivityChart({required this.stats});
+
+  final List<_FocusDayStat> stats;
 
   @override
   Widget build(BuildContext context) {
+    final maxHours = stats.fold<double>(
+      0,
+      (maxValue, stat) => stat.hours > maxValue ? stat.hours : maxValue,
+    );
+    final normalizedMax = maxHours > 0 ? maxHours : 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -245,46 +373,37 @@ class _ProductivityChart extends StatelessWidget {
             letterSpacing: 2,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         SizedBox(
-          height: 120,
+          height: 140,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _buildBar('M', 0.4),
-              _buildBar('T', 0.6),
-              _buildBar('W', 0.8),
-              _buildBar('T', 0.5),
-              _buildBar('F', 0.7),
-              _buildBar('S', 0.2),
-              _buildBar('S', 0.3),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBar(String day, double progress) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          width: 32,
-          height: 100 * progress,
-          decoration: BoxDecoration(
-            color: progress > 0.5 ? Colors.black : Colors.grey[200],
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          day,
-          style: const TextStyle(
-            color: Colors.black38,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+            children: stats.map((stat) {
+              final height = (stat.hours / normalizedMax) * 120;
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 20,
+                    height: height,
+                    decoration: BoxDecoration(
+                      color: stat.hours > 0.5 ? Colors.black : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    stat.label,
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
           ),
         ),
       ],
@@ -292,14 +411,116 @@ class _ProductivityChart extends StatelessWidget {
   }
 }
 
+class _RecentSessionsList extends StatelessWidget {
+  const _RecentSessionsList({required this.sessions});
+
+  final List<FocusSession> sessions;
+
+  @override
+  Widget build(BuildContext context) {
+    if (sessions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          color: Colors.grey[50],
+        ),
+        child: const Text(
+          '还没有记录，开始一次专注吧！',
+          style: TextStyle(color: Colors.black45),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: Colors.grey[50],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '最近记录',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          ...sessions.map((session) => _FocusSessionTile(session: session)),
+        ],
+      ),
+    );
+  }
+}
+
+class _FocusSessionTile extends StatelessWidget {
+  const _FocusSessionTile({required this.session});
+
+  final FocusSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    final formatter = DateFormat('MM/dd HH:mm');
+    final durationMinutes = session.actualDuration.inMinutes;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: session.completed ? Colors.black : Colors.grey[200],
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              session.completed ? Icons.check : Icons.pause,
+              color: session.completed ? Colors.white : Colors.black54,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  session.taskName ?? '专注任务',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  formatter.format(session.startTime),
+                  style: const TextStyle(fontSize: 12, color: Colors.black45),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$durationMinutes min',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FocusDayStat {
+  const _FocusDayStat({required this.label, required this.hours});
+
+  final String label;
+  final double hours;
+}
+
 class _StartFocusButton extends StatelessWidget {
+  const _StartFocusButton({required this.onTap, required this.isRunning});
+
   final VoidCallback onTap;
   final bool isRunning;
-
-  const _StartFocusButton({
-    required this.onTap,
-    required this.isRunning,
-  });
 
   @override
   Widget build(BuildContext context) {

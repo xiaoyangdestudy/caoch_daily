@@ -1,34 +1,31 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../shared/services/local_store.dart';
 import '../domain/workout_record.dart';
 
 class WorkoutRepository {
+  WorkoutRepository(this._store);
+
+  final LocalStore _store;
+
   static const String _storageKey = 'workout_records';
 
   Future<List<WorkoutRecord>> getAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_storageKey);
-    if (jsonString == null) return [];
-
-    final List<dynamic> jsonList = jsonDecode(jsonString);
-    return jsonList.map((e) => WorkoutRecord.fromJson(e)).toList();
+    final records = _store.readList(_storageKey, WorkoutRecord.fromJson);
+    records.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return records;
   }
 
   Future<void> add(WorkoutRecord record) async {
-    final prefs = await SharedPreferences.getInstance();
     final records = await getAll();
-    records.insert(0, record); // Add to top
-    
-    final jsonList = records.map((e) => e.toJson()).toList();
-    await prefs.setString(_storageKey, jsonEncode(jsonList));
+    records.removeWhere((element) => element.id == record.id);
+    records.insert(0, record);
+
+    await _store.writeList(_storageKey, records, (record) => record.toJson());
   }
 
   Future<void> delete(String id) async {
-    final prefs = await SharedPreferences.getInstance();
     final records = await getAll();
     records.removeWhere((e) => e.id == id);
-    
-    final jsonList = records.map((e) => e.toJson()).toList();
-    await prefs.setString(_storageKey, jsonEncode(jsonList));
+
+    await _store.writeList(_storageKey, records, (record) => record.toJson());
   }
 }

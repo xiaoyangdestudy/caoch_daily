@@ -22,7 +22,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     debugLogDiagnostics: true,
-    initialLocation: hasCompletedOnboarding ? AppRoutes.home : AppRoutes.onboarding,
+    initialLocation: hasCompletedOnboarding
+        ? AppRoutes.home
+        : AppRoutes.onboarding,
     routes: [
       GoRoute(
         path: AppRoutes.splash,

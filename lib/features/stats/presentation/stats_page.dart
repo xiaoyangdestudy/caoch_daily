@@ -54,9 +54,7 @@ class StatsPage extends ConsumerWidget {
                       dailyDuration: state.dailyDuration,
                     ),
                     const SizedBox(height: 24),
-                    _RecentActivityList(
-                      records: state.filteredRecords,
-                    ),
+                    _RecentActivityList(records: state.filteredRecords),
                   ],
                 ),
               ),
@@ -86,7 +84,9 @@ class _DateSelector extends StatelessWidget {
   String get _dateRangeLabel {
     if (period == StatsPeriod.week) {
       // Start of week (Monday)
-      final start = focusedDate.subtract(Duration(days: focusedDate.weekday - 1));
+      final start = focusedDate.subtract(
+        Duration(days: focusedDate.weekday - 1),
+      );
       final end = start.add(const Duration(days: 6));
       final dateFormat = DateFormat('MM.dd');
       return '${dateFormat.format(start)} - ${dateFormat.format(end)}';
@@ -313,10 +313,7 @@ class _StatCard extends StatelessWidget {
 }
 
 class _ActivityChart extends StatelessWidget {
-  const _ActivityChart({
-    required this.period,
-    required this.dailyDuration,
-  });
+  const _ActivityChart({required this.period, required this.dailyDuration});
 
   final StatsPeriod period;
   final Map<int, int> dailyDuration;
@@ -477,10 +474,7 @@ class _RecentActivityList extends StatelessWidget {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20.0),
-                child: Text(
-                  '暂无活动记录',
-                  style: TextStyle(color: Colors.black45),
-                ),
+                child: Text('暂无活动记录', style: TextStyle(color: Colors.black45)),
               ),
             )
           else
@@ -511,10 +505,7 @@ class _ActivityItem extends StatelessWidget {
               color: AppColors.candyPink.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.directions_run,
-              color: AppColors.candyPink,
-            ),
+            child: const Icon(Icons.directions_run, color: AppColors.candyPink),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -532,10 +523,7 @@ class _ActivityItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   dateFormat.format(record.startTime),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
             ),
@@ -554,10 +542,7 @@ class _ActivityItem extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 '${record.caloriesKcal} kcal',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ],
           ),

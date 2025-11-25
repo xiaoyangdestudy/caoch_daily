@@ -9,9 +9,7 @@ Future<void> main() async {
     final prefs = await SharedPreferences.getInstance();
 
     return ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWith((ref) => prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const LifeCoachApp(),
     );
   });

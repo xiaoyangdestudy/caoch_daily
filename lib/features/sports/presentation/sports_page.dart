@@ -99,7 +99,8 @@ class SportsPage extends ConsumerWidget {
                       Expanded(
                         child: _StatBox(
                           label: '总距离',
-                          value: (weeklyStats['distance'] as double).toStringAsFixed(1),
+                          value: (weeklyStats['distance'] as double)
+                              .toStringAsFixed(1),
                           unit: 'km',
                           icon: Icons.map_outlined,
                           color: AppColors.candyBlue,
@@ -119,7 +120,8 @@ class SportsPage extends ConsumerWidget {
                       Expanded(
                         child: _StatBox(
                           label: '时长',
-                          value: (weeklyStats['duration'] as double).toStringAsFixed(1),
+                          value: (weeklyStats['duration'] as double)
+                              .toStringAsFixed(1),
                           unit: 'hr',
                           icon: Icons.timer_outlined,
                           color: AppColors.candyPurple,
@@ -171,7 +173,8 @@ class SportsPage extends ConsumerWidget {
                         }).toList(),
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Text('加载失败: $e'),
                   ),
                 ],
@@ -216,10 +219,7 @@ class _LogWorkoutCard extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             '记录每一次汗水',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white54, fontSize: 12),
           ),
           const SizedBox(height: 20),
           Row(
@@ -281,10 +281,7 @@ class _ActionButton extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                 child: Icon(icon, color: Colors.black, size: 24),
               ),
               const SizedBox(height: 8),
@@ -383,7 +380,8 @@ class _ActivityItem extends StatelessWidget {
               record.type.iconPath,
               width: 24,
               height: 24,
-              errorBuilder: (_, __, ___) => const Icon(Icons.fitness_center, color: AppColors.candyPink),
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.fitness_center, color: AppColors.candyPink),
             ),
           ),
           const SizedBox(width: 16),

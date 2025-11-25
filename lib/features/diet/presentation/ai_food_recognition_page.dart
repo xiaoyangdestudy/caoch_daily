@@ -1,21 +1,30 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
+import '../application/diet_providers.dart';
+import '../domain/diet_models.dart';
 
-class AiFoodRecognitionPage extends StatefulWidget {
+class AiFoodRecognitionPage extends ConsumerStatefulWidget {
   const AiFoodRecognitionPage({super.key});
 
   @override
-  State<AiFoodRecognitionPage> createState() => _AiFoodRecognitionPageState();
+  ConsumerState<AiFoodRecognitionPage> createState() =>
+      _AiFoodRecognitionPageState();
 }
 
-class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
+class _AiFoodRecognitionPageState extends ConsumerState<AiFoodRecognitionPage> {
   CameraController? _controller;
   bool _isAnalyzing = false;
   bool _hasResult = false;
   bool _isCameraInitialized = false;
+  bool _isSaving = false;
+  MealType _selectedMealType = MealType.breakfast;
+  final Uuid _uuid = const Uuid();
 
   @override
   void initState() {
@@ -51,7 +60,7 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
     super.dispose();
   }
 
-  void _takePictureAndAnalyze() async {
+  Future<void> _takePictureAndAnalyze() async {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
     try {
@@ -59,12 +68,9 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
         _isAnalyzing = true;
       });
 
-      // Simulate capture delay and analysis
       await Future.delayed(const Duration(milliseconds: 500));
-      // In a real app, we would use: await _controller!.takePicture();
-      
       await Future.delayed(const Duration(seconds: 2));
-      
+
       if (mounted) {
         setState(() {
           _isAnalyzing = false;
@@ -79,13 +85,44 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
     }
   }
 
+  Future<void> _saveResult() async {
+    if (_isSaving) return;
+
+    setState(() => _isSaving = true);
+    final notifier = ref.read(dietRecordsProvider.notifier);
+    final item = FoodItem(
+      id: _uuid.v4(),
+      name: '牛油果吐司',
+      calories: 320,
+      protein: 12,
+      carbs: 45,
+      fat: 18,
+    );
+    final record = MealRecord(
+      id: _uuid.v4(),
+      mealType: _selectedMealType,
+      timestamp: DateTime.now(),
+      items: [item],
+      notes: 'AI 摄入识别',
+    );
+
+    await notifier.addMeal(record);
+
+    if (mounted) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('已添加到饮食日记')));
+      context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Camera Preview
           Positioned.fill(
             child: _isCameraInitialized
                 ? CameraPreview(_controller!)
@@ -96,8 +133,6 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
                     ),
                   ),
           ),
-          
-          // Header
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -121,18 +156,16 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
               ),
             ),
           ),
-
-          // Analysis Overlay
           if (_isAnalyzing)
             Container(
               color: Colors.black54,
-              child: Center(
+              child: const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const CircularProgressIndicator(color: AppColors.candyOrange),
-                    const SizedBox(height: 16),
-                    const Text(
+                    CircularProgressIndicator(color: AppColors.candyOrange),
+                    SizedBox(height: 16),
+                    Text(
                       '正在分析食物...',
                       style: TextStyle(
                         color: Colors.white,
@@ -144,8 +177,6 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
                 ),
               ),
             ),
-
-          // Result Sheet
           if (_hasResult)
             Align(
               alignment: Alignment.bottomCenter,
@@ -169,7 +200,10 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
                             color: AppColors.candyOrange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.check_circle, color: AppColors.candyOrange),
+                          child: const Icon(
+                            Icons.check_circle,
+                            color: AppColors.candyOrange,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         const Column(
@@ -195,7 +229,7 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -205,11 +239,26 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
                         _NutrientItem(label: '脂肪', value: '18', unit: 'g'),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8,
+                      children: MealType.values.map((type) {
+                        final selected = type == _selectedMealType;
+                        return ChoiceChip(
+                          label: Text(type.label),
+                          selected: selected,
+                          onSelected: (_) => setState(() {
+                            _selectedMealType = type;
+                          }),
+                          selectedColor: AppColors.candyOrange,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => context.pop(),
+                        onPressed: _isSaving ? null : _saveResult,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -217,22 +266,29 @@ class _AiFoodRecognitionPageState extends State<AiFoodRecognitionPage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          '添加到日记',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                '添加到日记',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-          // Capture Button
           if (!_isAnalyzing && !_hasResult)
             Align(
               alignment: Alignment.bottomCenter,

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../sports/data/workout_repository.dart';
+import '../../../sports/application/sports_providers.dart' as sports;
 import '../../../sports/domain/workout_record.dart';
 
 enum StatsPeriod { week, month }
@@ -44,13 +44,15 @@ class StatsState {
     final now = focusedDate;
     if (period == StatsPeriod.week) {
       // Start of week (Monday)
-      return now.subtract(Duration(days: now.weekday - 1)).copyWith(
-        hour: 0,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-        microsecond: 0,
-      );
+      return now
+          .subtract(Duration(days: now.weekday - 1))
+          .copyWith(
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+            microsecond: 0,
+          );
     } else {
       // Start of month
       return DateTime(now.year, now.month, 1);
@@ -68,25 +70,21 @@ class StatsState {
 
   // Summary getters
   int get totalWorkouts => filteredRecords.length;
-  
-  int get totalDurationMinutes => filteredRecords.fold(
-        0,
-        (sum, record) => sum + record.durationMinutes,
-      );
-      
-  int get totalCalories => filteredRecords.fold(
-        0,
-        (sum, record) => sum + record.caloriesKcal,
-      );
+
+  int get totalDurationMinutes =>
+      filteredRecords.fold(0, (sum, record) => sum + record.durationMinutes);
+
+  int get totalCalories =>
+      filteredRecords.fold(0, (sum, record) => sum + record.caloriesKcal);
 
   // Chart data helpers
   Map<int, int> get dailyDuration {
     final map = <int, int>{};
     final records = filteredRecords;
-    
+
     for (var record in records) {
-      final day = period == StatsPeriod.week 
-          ? record.startTime.weekday 
+      final day = period == StatsPeriod.week
+          ? record.startTime.weekday
           : record.startTime.day;
       map[day] = (map[day] ?? 0) + record.durationMinutes;
     }
@@ -104,7 +102,7 @@ class StatsNotifier extends Notifier<StatsState> {
   Future<void> _loadData() async {
     state = state.copyWith(isLoading: true);
     try {
-      final repository = ref.read(workoutRepositoryProvider);
+      final repository = ref.read(sports.workoutRepositoryProvider);
       final records = await repository.getAll();
       state = state.copyWith(allRecords: records, isLoading: false);
     } catch (e) {
@@ -149,8 +147,6 @@ class StatsNotifier extends Notifier<StatsState> {
     }
   }
 }
-
-final workoutRepositoryProvider = Provider((ref) => WorkoutRepository());
 
 final statsProvider = NotifierProvider<StatsNotifier, StatsState>(
   StatsNotifier.new,
