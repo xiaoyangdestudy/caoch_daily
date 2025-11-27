@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(flutter run:*)",
-      "Bash(flutter pub run build_runner build:*)"
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../shared/providers/preferences_provider.dart';
+import '../../../shared/providers/api_provider.dart';
 import '../data/review_repository.dart';
 import '../domain/review_record.dart';
 
 final reviewRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
-  return ReviewRepository(store);
+  final api = ref.watch(apiClientProvider);
+  return ReviewRepository(store, api);
 });
 
 final reviewEntriesProvider =

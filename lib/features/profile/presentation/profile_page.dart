@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
+import '../../../shared/providers/api_provider.dart';
+import '../../auth/presentation/auth_page.dart';
+import '../../review/application/review_providers.dart';
 import '../application/profile_provider.dart';
 import '../domain/profile_model.dart';
 
@@ -79,6 +82,13 @@ class ProfilePage extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+            // 数据同步Section
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              sliver: SliverToBoxAdapter(
+                child: _DataSyncSection(),
               ),
             ),
             SliverPadding(
@@ -830,3 +840,192 @@ class _SupportSheet extends StatelessWidget {
     );
   }
 }
+
+// ==================== 数据同步Section ====================
+
+class _DataSyncSection extends ConsumerWidget {
+  const _DataSyncSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final api = ref.watch(apiClientProvider);
+    final usernameAsync = ref.watch(currentUsernameProvider);
+
+    return usernameAsync.when(
+      data: (username) {
+        final isAuthenticated = api.isAuthenticated && username != null;
+
+        if (isAuthenticated) {
+          // 已登录状态
+          return _ProfileMenuSection(
+            title: '数据同步',
+            children: [
+              _ProfileMenuItem(
+                icon: Icons.account_circle_outlined,
+                label: '已登录',
+                description: '用户：$username',
+                valueText: '已同步',
+              ),
+              _ProfileMenuItem(
+                icon: Icons.cloud_sync,
+                label: '同步数据',
+                description: '将本地数据同步到云端',
+                onTap: () => _handleSync(context, ref),
+              ),
+              _ProfileMenuItem(
+                icon: Icons.logout,
+                label: '退出登录',
+                description: '本地数据会保留',
+                onTap: () => _handleLogout(context, ref),
+              ),
+            ],
+          );
+        } else {
+          // 未登录状态
+          return _ProfileMenuSection(
+            title: '数据同步',
+            children: [
+              _ProfileMenuItem(
+                icon: Icons.cloud_outlined,
+                label: '登录/注册',
+                description: '登录后数据将同步到云端，可在多设备间共享',
+                onTap: () => _handleAuth(context, ref),
+              ),
+            ],
+          );
+        }
+      },
+      loading: () => _ProfileMenuSection(
+        title: '数据同步',
+        children: const [
+          _ProfileMenuItem(
+            icon: Icons.cloud_outlined,
+            label: '加载中...',
+            description: '正在检查登录状态',
+          ),
+        ],
+      ),
+      error: (_, __) => _ProfileMenuSection(
+        title: '数据同步',
+        children: [
+          _ProfileMenuItem(
+            icon: Icons.cloud_outlined,
+            label: '登录/注册',
+            description: '登录后数据将同步到云端',
+            onTap: () => _handleAuth(context, ref),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 处理登录/注册
+  Future<void> _handleAuth(BuildContext context, WidgetRef ref) async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (context) => const AuthPage()),
+    );
+
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('登录成功！')),
+      );
+
+      // 刷新用户名显示
+      ref.invalidate(currentUsernameProvider);
+    }
+  }
+
+  // 处理同步
+  Future<void> _handleSync(BuildContext context, WidgetRef ref) async {
+    // 显示加载对话框
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('正在同步数据...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // 同步Review数据（示例）
+      final reviewRepo = ref.read(reviewRepositoryProvider);
+      await reviewRepo.syncToServer();
+
+      // TODO: 同步其他数据
+      // await workoutRepo.syncToServer();
+      // await mealRepo.syncToServer();
+      // await sleepRepo.syncToServer();
+      // await focusRepo.syncToServer();
+
+      if (context.mounted) {
+        Navigator.of(context).pop(); // 关闭加载对话框
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✓ 同步成功！'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // 关闭加载对话框
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('同步失败：$e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // 处理登出
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认退出登录'),
+        content: const Text('退出后本地数据会保留，但不再同步到云端。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('退出'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final api = ref.read(apiClientProvider);
+      await api.logout();
+
+      // 刷新用户名显示
+      ref.invalidate(currentUsernameProvider);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('已退出登录')),
+        );
+      }
+    }
+  }
+}
+
