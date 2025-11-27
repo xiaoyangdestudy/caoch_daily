@@ -23,40 +23,16 @@ class ProfilePage extends ConsumerWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                child: _HeaderBar(
-                  nickname: state.overview.nickname,
+                child: _ProfileHeader(
+                  overview: state.overview,
                   onScan: () => _showFeatureComing(context),
                   onSettings: () => _showSupportSheet(
                     context,
                     _SupportSheetType.about,
                     version: state.version,
                   ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _ProfileHeroCard(
-                  overview: state.overview,
                   onEdit: () => _openEditSheet(context, ref, state),
                   onTimeline: () => _showFeatureComing(context),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-                child: _UpgradeBanner(onTap: () => _showFeatureComing(context)),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: _GoalSection(
-                  goals: state.goals,
-                  onRecord: notifier.recordGoalProgress,
-                  onAdjust: (goal) => _showGoalSheet(context, ref, goal),
                 ),
               ),
             ),
@@ -203,22 +179,6 @@ class ProfilePage extends ConsumerWidget {
     }
   }
 
-  Future<void> _showGoalSheet(
-    BuildContext context,
-    WidgetRef ref,
-    ProfileGoal goal,
-  ) async {
-    final target = await showModalBottomSheet<int>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _GoalEditSheet(goal: goal),
-    );
-    if (target != null) {
-      ref.read(profileProvider.notifier).updateGoalTarget(goal.id, target);
-    }
-  }
-
   Future<void> _showAiStyleSheet(
     BuildContext context,
     WidgetRef ref,
@@ -255,49 +215,174 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-class _HeaderBar extends StatelessWidget {
-  const _HeaderBar({
-    required this.nickname,
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.overview,
     required this.onScan,
     required this.onSettings,
+    required this.onEdit,
+    required this.onTimeline,
   });
 
-  final String nickname;
+  final ProfileOverview overview;
   final VoidCallback onScan;
   final VoidCallback onSettings;
+  final VoidCallback onEdit;
+  final VoidCallback onTimeline;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '个人中心 👤',
-                style: TextStyle(
-                  fontSize: 14,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black54,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              '个人中心',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: Colors.black87,
+              ),
+            ),
+            Row(
+              children: [
+                _RoundIconButton(icon: Icons.qr_code_scanner, onTap: onScan),
+                const SizedBox(width: 12),
+                _RoundIconButton(icon: Icons.settings_outlined, onTap: onSettings),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.candyPurple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: AppColors.candyPurple.withValues(alpha: 0.2),
+                  width: 2,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                '$nickname，今天也要好好生活',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black87,
-                ),
+              alignment: Alignment.center,
+              child: Text(
+                overview.emoji,
+                style: const TextStyle(fontSize: 40),
               ),
-            ],
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    overview.nickname,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    overview.encourageText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black.withValues(alpha: 0.5),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: AppShadows.cardSoft,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: overview.stats.map((stat) => _SimpleStatItem(stat: stat)).toList(),
           ),
         ),
-        _RoundIconButton(icon: Icons.qr_code_scanner, onTap: onScan),
-        const SizedBox(width: 12),
-        _RoundIconButton(icon: Icons.settings_outlined, onTap: onSettings),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: onEdit,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.black87,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                label: const Text('编辑资料'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onTimeline,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.black87,
+                  side: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.calendar_month_outlined, size: 20),
+                label: const Text('打卡日历'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SimpleStatItem extends StatelessWidget {
+  const _SimpleStatItem({required this.stat});
+
+  final ProfileStat stat;
+
+  @override
+  Widget build(BuildContext context) {
+    final suffix = stat.suffix != null ? stat.suffix! : '';
+    return Column(
+      children: [
+        Text(
+          stat.value + suffix,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          stat.label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.black.withValues(alpha: 0.4),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
@@ -314,411 +399,21 @@ class _RoundIconButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: AppShadows.white3d,
-        ),
-        child: Icon(icon, color: Colors.black87),
-      ),
-    );
-  }
-}
-
-class _ProfileHeroCard extends StatelessWidget {
-  const _ProfileHeroCard({
-    required this.overview,
-    required this.onEdit,
-    required this.onTimeline,
-  });
-
-  final ProfileOverview overview;
-  final VoidCallback onEdit;
-  final VoidCallback onTimeline;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
-          colors: [AppColors.candyPurple, AppColors.candyBlue],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: AppShadows.purple3d,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      overview.nickname,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      overview.encourageText,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _EmojiBadge(
-                emoji: overview.emoji,
-                streakDays: overview.streakDays,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 24,
-            runSpacing: 12,
-            children: overview.stats
-                .map((stat) => _StatBadge(stat: stat))
-                .toList(),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onEdit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('编辑资料'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onTimeline,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white54),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text('打卡日历'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmojiBadge extends StatelessWidget {
-  const _EmojiBadge({required this.emoji, required this.streakDays});
-
-  final String emoji;
-  final int streakDays;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 72,
-      height: 96,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withValues(alpha: 0.15),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 36)),
-          const SizedBox(height: 8),
-          Text(
-            '$streakDays 天',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          const Text(
-            '连续改变',
-            style: TextStyle(color: Colors.white70, fontSize: 10),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatBadge extends StatelessWidget {
-  const _StatBadge({required this.stat});
-
-  final ProfileStat stat;
-
-  @override
-  Widget build(BuildContext context) {
-    final suffix = stat.suffix != null ? stat.suffix! : '';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            stat.value + suffix,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            stat.label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UpgradeBanner extends StatelessWidget {
-  const _UpgradeBanner({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: const LinearGradient(
-            colors: [AppColors.candyYellow, AppColors.candyOrange],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: AppShadows.yellow3d,
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(Icons.workspace_premium, color: Colors.white),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    '升级 Dopamine Pro',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '解锁 AI 周报、个性化提醒与多设备同步。',
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.white70),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _GoalSection extends StatelessWidget {
-  const _GoalSection({
-    required this.goals,
-    required this.onRecord,
-    required this.onAdjust,
-  });
-
-  final List<ProfileGoal> goals;
-  final void Function(String id) onRecord;
-  final ValueChanged<ProfileGoal> onAdjust;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '我的目标',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...goals.map(
-          (goal) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _GoalCard(
-              goal: goal,
-              onRecord: () => onRecord(goal.id),
-              onAdjust: () => onAdjust(goal),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GoalCard extends StatelessWidget {
-  const _GoalCard({
-    required this.goal,
-    required this.onRecord,
-    required this.onAdjust,
-  });
-
-  final ProfileGoal goal;
-  final VoidCallback onRecord;
-  final VoidCallback onAdjust;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: AppShadows.cardSoft,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: goal.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: goal.color.withValues(alpha: 0.35)),
-                ),
-                child: Icon(goal.icon, color: goal.color),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      goal.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      goal.description,
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: onAdjust,
-                icon: const Icon(Icons.tune_rounded),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: goal.progress,
-              minHeight: 10,
-              backgroundColor: goal.color.withValues(alpha: 0.12),
-              valueColor: AlwaysStoppedAnimation(goal.color),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                goal.progressLabel,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                goal.isFinished ? '本周达成 ✅' : '继续加油',
-                style: TextStyle(
-                  color: goal.isFinished ? Colors.green : Colors.black45,
-                  fontSize: 12,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '目标 ${goal.target} ${goal.unit}',
-                style: const TextStyle(color: Colors.black38),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: goal.isFinished ? null : onRecord,
-            style: FilledButton.styleFrom(
-              backgroundColor: goal.isFinished
-                  ? Colors.grey.shade200
-                  : goal.color,
-              foregroundColor: goal.isFinished ? Colors.black54 : Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-            ),
-            child: Text(goal.isFinished ? '今日已记' : '记一次'),
-          ),
-        ],
+        child: Icon(icon, color: Colors.black87, size: 22),
       ),
     );
   }
@@ -1010,108 +705,6 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: const Text('保存'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GoalEditSheet extends StatefulWidget {
-  const _GoalEditSheet({required this.goal});
-
-  final ProfileGoal goal;
-
-  @override
-  State<_GoalEditSheet> createState() => _GoalEditSheetState();
-}
-
-class _GoalEditSheetState extends State<_GoalEditSheet> {
-  late final TextEditingController _targetController;
-  int _selectedQuick = 0;
-
-  static const _quickTargets = [3, 4, 5, 7, 10];
-
-  @override
-  void initState() {
-    super.initState();
-    _targetController = TextEditingController(
-      text: widget.goal.target.toString(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _targetController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final value = int.tryParse(_targetController.text.trim());
-    if (value == null || value <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请输入正确的目标次数')));
-      return;
-    }
-    Navigator.of(context).pop(value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, bottom + 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '调整「${widget.goal.title}」',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.goal.description,
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _targetController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: '每周目标 (${widget.goal.unit})',
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            children: List.generate(_quickTargets.length, (index) {
-              final value = _quickTargets[index];
-              final selected = _selectedQuick == index;
-              return ChoiceChip(
-                label: Text('$value${widget.goal.unit}'),
-                selected: selected,
-                onSelected: (_) {
-                  setState(() {
-                    _selectedQuick = index;
-                    _targetController.text = value.toString();
-                  });
-                },
-              );
-            }),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _submit,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: const Text('保存目标'),
             ),
           ),
         ],

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../shell/presentation/app_shell_page.dart';
+
 import '../../../app/router/app_routes.dart';
-import '../domain/record_type.dart';
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
+import '../application/dashboard_providers.dart';
+import '../domain/dashboard_overview.dart';
+import '../domain/record_type.dart';
+import '../../profile/application/profile_provider.dart';
 import 'widgets/quick_record_sheet.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   String get _dateLabel {
@@ -22,40 +28,22 @@ class DashboardPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final cardData = [
-      _CardData(
-        title: '运动',
-        value: '32',
-        subValue: 'min',
-        type: RecordType.exercise,
-        progress: 0.8,
-        darkText: false,
-      ),
-      _CardData(
-        title: '饮食',
-        value: '1.2k',
-        subValue: 'kcal',
-        type: RecordType.diet,
-        progress: 0.6,
-        darkText: true,
-      ),
-      _CardData(
-        title: '睡眠',
-        value: '7.5',
-        subValue: 'hr',
-        type: RecordType.sleep,
-        darkText: true,
-      ),
-      _CardData(
-        title: '工作',
-        value: '4.5',
-        subValue: 'hr',
-        type: RecordType.work,
-        progress: 0.75,
-        darkText: false,
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final overviewState = ref.watch(dashboardOverviewProvider);
+    final overview = overviewState.data;
+    final nickname = overview?.nickname ?? 'Alex';
+    final hasError = overviewState.error != null;
+    final cards = hasError
+        ? _initialCardStats
+        : (overview?.cards ?? _initialCardStats);
+    final summaryText = hasError
+        ? '数据加载失败，请稍后重试。'
+        : overview?.summary ?? '今日数据加载中...记得随手记录。';
+    final vitality = hasError ? 0 : overview?.vitalityScore ?? 0;
+
+    // Get emoji from profile
+    final profileState = ref.watch(profileProvider);
+    final userEmoji = profileState.overview.emoji;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -89,9 +77,9 @@ class DashboardPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Alex',
-                            style: TextStyle(
+                          Text(
+                            nickname,
+                            style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
                             ),
@@ -99,18 +87,37 @@ class DashboardPage extends StatelessWidget {
                         ],
                       ),
                       const Spacer(),
+                      // Review Button
+                      Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: AppShadows.cardSoft,
+                        ),
+                        child: IconButton(
+                          onPressed: () => context.go(AppRoutes.review),
+                          icon: const Icon(Icons.note_alt_outlined),
+                          color: AppColors.candyPurple,
+                          tooltip: '每日复盘',
+                        ),
+                      ),
                       Container(
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
+                          color: AppColors.candyPurple.withOpacity(0.1),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(
+                            color: AppColors.candyPurple.withOpacity(0.2),
+                            width: 2,
+                          ),
                           boxShadow: AppShadows.cardSoft,
                         ),
-                        child: const CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            'https://api.dicebear.com/7.x/avataaars/png?seed=Alex',
-                          ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          userEmoji,
+                          style: const TextStyle(fontSize: 20),
                         ),
                       ),
                     ],
@@ -120,7 +127,11 @@ class DashboardPage extends StatelessWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: const _HeroCard(summary: '状态回升！记得多喝水。'),
+                  child: _HeroCard(
+                    summary: summaryText,
+                    vitality: vitality,
+                    isLoading: overviewState.isLoading,
+                  ),
                 ),
               ),
               SliverPadding(
@@ -133,14 +144,14 @@ class DashboardPage extends StatelessWidget {
                     childAspectRatio: 1,
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    final card = cardData[index];
+                    final card = cards[index];
                     return DashboardStatCard(
-                      title: card.title,
+                      title: card.type.label,
                       type: card.type,
                       value: card.value,
                       subValue: card.subValue,
                       progress: card.progress,
-                      darkText: card.darkText,
+                      darkText: card.type.prefersDarkText,
                       onTap: () {
                         if (card.type == RecordType.exercise) {
                           context.push(AppRoutes.sports);
@@ -155,14 +166,11 @@ class DashboardPage extends StatelessWidget {
                         }
                       },
                     );
-                  }, childCount: cardData.length),
+                  }, childCount: cards.length),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 4, 24, 120),
-                  child: _ReviewBanner(onTap: () {}),
-                ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 100),
               ),
             ],
           ),
@@ -172,28 +180,16 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-class _CardData {
-  const _CardData({
-    required this.title,
-    required this.value,
-    required this.subValue,
-    required this.type,
-    required this.darkText,
-    this.progress,
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({
+    required this.summary,
+    required this.vitality,
+    required this.isLoading,
   });
 
-  final String title;
-  final String value;
-  final String? subValue;
-  final RecordType type;
-  final bool darkText;
-  final double? progress;
-}
-
-class _HeroCard extends StatelessWidget {
-  const _HeroCard({required this.summary});
-
   final String summary;
+  final int vitality;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -254,8 +250,8 @@ class _HeroCard extends StatelessWidget {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
+                      children: [
+                        const Text(
                           '活力值',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -263,10 +259,10 @@ class _HeroCard extends StatelessWidget {
                             letterSpacing: 2,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          '85',
-                          style: TextStyle(
+                          isLoading ? '--' : vitality.toString(),
+                          style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.w900,
                           ),
@@ -339,6 +335,37 @@ class _HeroCard extends StatelessWidget {
     );
   }
 }
+
+const List<DashboardCardStat> _initialCardStats = [
+  DashboardCardStat(
+    type: RecordType.exercise,
+    value: '0',
+    subValue: 'min',
+    progress: 0,
+    rawValue: 0,
+  ),
+  DashboardCardStat(
+    type: RecordType.diet,
+    value: '0',
+    subValue: 'kcal',
+    progress: 0,
+    rawValue: 0,
+  ),
+  DashboardCardStat(
+    type: RecordType.sleep,
+    value: '0',
+    subValue: 'hr',
+    progress: null,
+    rawValue: 0,
+  ),
+  DashboardCardStat(
+    type: RecordType.work,
+    value: '0',
+    subValue: 'hr',
+    progress: 0,
+    rawValue: 0,
+  ),
+];
 
 class DashboardStatCard extends StatelessWidget {
   const DashboardStatCard({
@@ -491,79 +518,6 @@ class DashboardStatCard extends StatelessWidget {
                   ),
                 ],
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReviewBanner extends StatelessWidget {
-  const _ReviewBanner({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: AppShadows.white3d,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF3E8FF), Colors.white],
-                ),
-                border: Border.all(color: Colors.purple.shade50),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.note_alt_outlined,
-                color: AppColors.candyPurple,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '夜间复盘',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    '今日报告',
-                    style: TextStyle(
-                      fontSize: 10,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black45,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
             ),
           ],
         ),

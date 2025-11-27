@@ -14,6 +14,8 @@ import '../../features/diet/presentation/ai_food_recognition_page.dart';
 import '../../features/sports/presentation/manual_entry_page.dart';
 import '../../features/sleep/presentation/sleep_page.dart';
 import '../../features/work/presentation/work_page.dart';
+import '../../features/moments/presentation/moments_page.dart';
+import '../../features/moments/presentation/create_moment_page.dart';
 import '../../shared/providers/preferences_provider.dart';
 import 'app_routes.dart';
 
@@ -68,6 +70,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'work',
         builder: (context, state) => const WorkPage(),
       ),
+      GoRoute(
+        path: AppRoutes.createMoment,
+        name: 'createMoment',
+        builder: (context, state) => const CreateMomentPage(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShellPage(navigationShell: navigationShell),
@@ -89,6 +96,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 name: 'review',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: ReviewPage()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.moments,
+                name: 'moments',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: MomentsPage()),
               ),
             ],
           ),

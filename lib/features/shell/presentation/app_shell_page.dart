@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/design/app_colors.dart';
-import '../../../shared/design/app_shadows.dart';
-import '../../dashboard/domain/record_type.dart';
-import '../../dashboard/presentation/widgets/quick_record_sheet.dart';
 
 class AppShellPage extends StatefulWidget {
   const AppShellPage({super.key, required this.navigationShell});
@@ -23,54 +20,12 @@ class _AppShellPageState extends State<AppShellPage> {
     );
   }
 
-  void _openQuickSheet() {
-    showQuickRecordSheet(context, initialType: RecordType.exercise);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
       body: widget.navigationShell,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: GestureDetector(
-        onTap: _openQuickSheet,
-        child: Container(
-          width: 78,
-          height: 78,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [AppColors.candyYellow, AppColors.candyOrange],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            boxShadow: AppShadows.yellow3d,
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.white54, Colors.transparent],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Center(
-                child: Icon(Icons.add, size: 36, color: Colors.white),
-              ),
-            ],
-          ),
-        ),
-      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: _BottomBar(
@@ -102,79 +57,47 @@ class _BottomBar extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final gap = constraints.maxWidth >= 320 ? 72.0 : 32.0;
-          final sideWidth = (constraints.maxWidth - gap) / 2;
-          return Row(
-            children: [
-              SizedBox(
-                width: sideWidth,
-                child: _NavGroup(
-                  alignment: WrapAlignment.start,
-                  children: [
-                    _NavItem(
-                      icon: Icons.home_filled,
-                      label: '首页',
-                      index: 0,
-                      currentIndex: currentIndex,
-                      onTap: () => onChanged(0),
-                    ),
-                    _NavItem(
-                      icon: Icons.query_stats_rounded,
-                      label: '统计',
-                      index: 2,
-                      currentIndex: currentIndex,
-                      onTap: () => onChanged(2),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: gap),
-              SizedBox(
-                width: sideWidth,
-                child: _NavGroup(
-                  alignment: WrapAlignment.end,
-                  children: [
-                    _NavItem(
-                      icon: Icons.playlist_add_check_rounded,
-                      label: '复盘',
-                      index: 1,
-                      currentIndex: currentIndex,
-                      onTap: () => onChanged(1),
-                    ),
-                    _NavItem(
-                      icon: Icons.person_outline,
-                      label: '我的',
-                      index: 3,
-                      currentIndex: currentIndex,
-                      onTap: () => onChanged(3),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _NavItem(
+            icon: Icons.home_filled,
+            label: '首页',
+            index: 0,
+            currentIndex: currentIndex,
+            onTap: () => onChanged(0),
+          ),
+          _NavItem(
+            icon: Icons.playlist_add_check_rounded,
+            label: '复盘',
+            index: 1,
+            currentIndex: currentIndex,
+            onTap: () => onChanged(1),
+          ),
+          _NavItem(
+            icon: Icons.photo_library_outlined,
+            label: '动态',
+            index: 2,
+            currentIndex: currentIndex,
+            onTap: () => onChanged(2),
+          ),
+          _NavItem(
+            icon: Icons.query_stats_rounded,
+            label: '统计',
+            index: 3,
+            currentIndex: currentIndex,
+            onTap: () => onChanged(3),
+          ),
+          _NavItem(
+            icon: Icons.person_outline,
+            label: '我的',
+            index: 4,
+            currentIndex: currentIndex,
+            onTap: () => onChanged(4),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _NavGroup extends StatelessWidget {
-  const _NavGroup({required this.children, required this.alignment});
-
-  final List<Widget> children;
-  final WrapAlignment alignment;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 8,
-      alignment: alignment,
-      children: children,
     );
   }
 }

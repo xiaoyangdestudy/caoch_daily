@@ -10,11 +10,23 @@ class StatsState {
   final List<WorkoutRecord> allRecords;
   final bool isLoading;
 
+  // Cached computed values
+  final List<WorkoutRecord> filteredRecords;
+  final int totalWorkouts;
+  final int totalDurationMinutes;
+  final int totalCalories;
+  final Map<int, int> dailyDuration;
+
   const StatsState({
     this.period = StatsPeriod.week,
     required this.focusedDate,
     this.allRecords = const [],
     this.isLoading = false,
+    this.filteredRecords = const [],
+    this.totalWorkouts = 0,
+    this.totalDurationMinutes = 0,
+    this.totalCalories = 0,
+    this.dailyDuration = const {},
   });
 
   StatsState copyWith({
@@ -23,29 +35,73 @@ class StatsState {
     List<WorkoutRecord>? allRecords,
     bool? isLoading,
   }) {
+    // Recompute cached values when dependencies change
+    final newPeriod = period ?? this.period;
+    final newFocusedDate = focusedDate ?? this.focusedDate;
+    final newAllRecords = allRecords ?? this.allRecords;
+
+    final computed = _computeStats(
+      period: newPeriod,
+      focusedDate: newFocusedDate,
+      allRecords: newAllRecords,
+    );
+
     return StatsState(
-      period: period ?? this.period,
-      focusedDate: focusedDate ?? this.focusedDate,
-      allRecords: allRecords ?? this.allRecords,
+      period: newPeriod,
+      focusedDate: newFocusedDate,
+      allRecords: newAllRecords,
       isLoading: isLoading ?? this.isLoading,
+      filteredRecords: computed.filteredRecords,
+      totalWorkouts: computed.totalWorkouts,
+      totalDurationMinutes: computed.totalDurationMinutes,
+      totalCalories: computed.totalCalories,
+      dailyDuration: computed.dailyDuration,
     );
   }
 
-  // Get records filtered by the current period and focused date
-  List<WorkoutRecord> get filteredRecords {
-    final start = _getStartDate();
-    final end = _getEndDate();
-    return allRecords.where((record) {
+  static _ComputedStats _computeStats({
+    required StatsPeriod period,
+    required DateTime focusedDate,
+    required List<WorkoutRecord> allRecords,
+  }) {
+    final start = _getStartDate(period, focusedDate);
+    final end = _getEndDate(period, focusedDate);
+
+    final filtered = allRecords.where((record) {
       return record.startTime.isAfter(start) && record.startTime.isBefore(end);
     }).toList();
+
+    final totalWorkouts = filtered.length;
+    final totalDurationMinutes = filtered.fold<int>(
+      0,
+      (sum, record) => sum + record.durationMinutes,
+    );
+    final totalCalories = filtered.fold<int>(
+      0,
+      (sum, record) => sum + record.caloriesKcal,
+    );
+
+    final dailyDurationMap = <int, int>{};
+    for (var record in filtered) {
+      final day = period == StatsPeriod.week
+          ? record.startTime.weekday
+          : record.startTime.day;
+      dailyDurationMap[day] = (dailyDurationMap[day] ?? 0) + record.durationMinutes;
+    }
+
+    return _ComputedStats(
+      filteredRecords: filtered,
+      totalWorkouts: totalWorkouts,
+      totalDurationMinutes: totalDurationMinutes,
+      totalCalories: totalCalories,
+      dailyDuration: dailyDurationMap,
+    );
   }
 
-  DateTime _getStartDate() {
-    final now = focusedDate;
+  static DateTime _getStartDate(StatsPeriod period, DateTime focusedDate) {
     if (period == StatsPeriod.week) {
-      // Start of week (Monday)
-      return now
-          .subtract(Duration(days: now.weekday - 1))
+      return focusedDate
+          .subtract(Duration(days: focusedDate.weekday - 1))
           .copyWith(
             hour: 0,
             minute: 0,
@@ -54,52 +110,54 @@ class StatsState {
             microsecond: 0,
           );
     } else {
-      // Start of month
-      return DateTime(now.year, now.month, 1);
+      return DateTime(focusedDate.year, focusedDate.month, 1);
     }
   }
 
-  DateTime _getEndDate() {
-    final start = _getStartDate();
+  static DateTime _getEndDate(StatsPeriod period, DateTime focusedDate) {
+    final start = _getStartDate(period, focusedDate);
     if (period == StatsPeriod.week) {
       return start.add(const Duration(days: 7));
     } else {
       return DateTime(start.year, start.month + 1, 1);
     }
   }
+}
 
-  // Summary getters
-  int get totalWorkouts => filteredRecords.length;
+class _ComputedStats {
+  final List<WorkoutRecord> filteredRecords;
+  final int totalWorkouts;
+  final int totalDurationMinutes;
+  final int totalCalories;
+  final Map<int, int> dailyDuration;
 
-  int get totalDurationMinutes =>
-      filteredRecords.fold(0, (sum, record) => sum + record.durationMinutes);
-
-  int get totalCalories =>
-      filteredRecords.fold(0, (sum, record) => sum + record.caloriesKcal);
-
-  // Chart data helpers
-  Map<int, int> get dailyDuration {
-    final map = <int, int>{};
-    final records = filteredRecords;
-
-    for (var record in records) {
-      final day = period == StatsPeriod.week
-          ? record.startTime.weekday
-          : record.startTime.day;
-      map[day] = (map[day] ?? 0) + record.durationMinutes;
-    }
-    return map;
-  }
+  const _ComputedStats({
+    required this.filteredRecords,
+    required this.totalWorkouts,
+    required this.totalDurationMinutes,
+    required this.totalCalories,
+    required this.dailyDuration,
+  });
 }
 
 class StatsNotifier extends Notifier<StatsState> {
   @override
   StatsState build() {
-    _loadData();
+    // Mark as keepAlive to prevent rebuilding when switching tabs
+    ref.keepAlive();
+
+    // Load data only once when first initialized
+    Future.microtask(() => _loadData());
+
     return StatsState(focusedDate: DateTime.now());
   }
 
   Future<void> _loadData() async {
+    // Prevent reloading if already loaded or loading
+    if (state.allRecords.isNotEmpty || state.isLoading) {
+      return;
+    }
+
     state = state.copyWith(isLoading: true);
     try {
       final repository = ref.read(sports.workoutRepositoryProvider);

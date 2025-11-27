@@ -16,15 +16,6 @@ class ReviewPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openReviewSheet(context, ref),
-        backgroundColor: Colors.black,
-        icon: const Icon(Icons.bolt, color: Colors.white),
-        label: const Text(
-          '记录复盘',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
       body: SafeArea(
         child: entriesAsync.when(
           data: (entries) {
@@ -46,6 +37,53 @@ class ReviewPage extends ConsumerWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '复盘',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        if (todayEntry != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.candyBlue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 16,
+                                  color: AppColors.candyBlue,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '已完成',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.candyBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,14 +95,15 @@ class ReviewPage extends ConsumerWidget {
                               : () => _showReviewDetail(context, todayEntry!),
                           onStart: () => _openReviewSheet(context, ref),
                         ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          '历史复盘',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        if (history.isNotEmpty) const SizedBox(height: 24),
+                        if (history.isNotEmpty)
+                          const Text(
+                            '历史复盘',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),

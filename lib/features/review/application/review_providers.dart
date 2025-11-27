@@ -22,6 +22,8 @@ class ReviewEntriesNotifier extends AsyncNotifier<List<ReviewEntry>> {
   @override
   Future<List<ReviewEntry>> build() async {
     _repository = ref.watch(reviewRepositoryProvider);
+    // Keep alive to prevent reloading when switching tabs
+    ref.keepAlive();
     return _repository.fetchAll();
   }
 
