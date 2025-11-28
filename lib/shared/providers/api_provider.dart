@@ -19,10 +19,10 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   // - 使用你的域名：'https://yourdomain.com/api'
 
   return ApiClient(
+    baseUrl: 'http://10.0.2.2:3000/api', // Android模拟器连接本地服务器
     // baseUrl: 'http://localhost:3000/api', // 本地开发
-    // baseUrl: 'http://10.0.2.2:3000/api', // Android模拟器
     // baseUrl: 'http://192.168.1.100:3000/api', // 真机测试（替换为你的IP）
-    baseUrl: 'http://111.230.25.80/api', // 云服务器生产环境
+    // baseUrl: 'http://111.230.25.80/api', // 云服务器生产环境
   );
 });
 
