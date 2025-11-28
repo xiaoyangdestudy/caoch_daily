@@ -128,11 +128,11 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // 启动服务器
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('======================================');
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV}`);
-  console.log(`✓ API Base URL: http://localhost:${PORT}/api`);
+  console.log(`✓ API Base URL: http://0.0.0.0:${PORT}/api`);
   console.log('======================================');
   console.log('Available endpoints:');
   console.log('  POST   /api/auth/register');
