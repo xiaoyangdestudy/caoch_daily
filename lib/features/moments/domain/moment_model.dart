@@ -8,10 +8,15 @@ part 'moment_model.g.dart';
 class Moment with _$Moment {
   const factory Moment({
     required String id,
+    required String userId,
+    required String username,
+    String? userAvatar,
     required String content,
     required DateTime createdAt,
     @Default([]) List<String> imageUrls,
     @Default(0) int likes,
+    @Default(0) int commentsCount,
+    @Default(false) bool isLiked,
     String? location,
     List<String>? tags,
   }) = _Moment;
@@ -23,14 +28,23 @@ class Moment with _$Moment {
 /// 创建动态的输入数据
 class CreateMomentInput {
   final String content;
-  final List<String> imageUrls;
+  final List<String> imagePaths; // 本地图片路径
   final String? location;
   final List<String>? tags;
 
   const CreateMomentInput({
     required this.content,
-    this.imageUrls = const [],
+    this.imagePaths = const [],
     this.location,
     this.tags,
   });
+
+  /// 转换为JSON格式（用于API请求）
+  Map<String, dynamic> toJson() {
+    return {
+      'content': content,
+      if (location != null) 'location': location,
+      if (tags != null) 'tags': tags,
+    };
+  }
 }

@@ -22,10 +22,15 @@ Moment _$MomentFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Moment {
   String get id => throw _privateConstructorUsedError;
+  String get userId => throw _privateConstructorUsedError;
+  String get username => throw _privateConstructorUsedError;
+  String? get userAvatar => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   List<String> get imageUrls => throw _privateConstructorUsedError;
   int get likes => throw _privateConstructorUsedError;
+  int get commentsCount => throw _privateConstructorUsedError;
+  bool get isLiked => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
   List<String>? get tags => throw _privateConstructorUsedError;
 
@@ -45,10 +50,15 @@ abstract class $MomentCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
+    String userId,
+    String username,
+    String? userAvatar,
     String content,
     DateTime createdAt,
     List<String> imageUrls,
     int likes,
+    int commentsCount,
+    bool isLiked,
     String? location,
     List<String>? tags,
   });
@@ -70,10 +80,15 @@ class _$MomentCopyWithImpl<$Res, $Val extends Moment>
   @override
   $Res call({
     Object? id = null,
+    Object? userId = null,
+    Object? username = null,
+    Object? userAvatar = freezed,
     Object? content = null,
     Object? createdAt = null,
     Object? imageUrls = null,
     Object? likes = null,
+    Object? commentsCount = null,
+    Object? isLiked = null,
     Object? location = freezed,
     Object? tags = freezed,
   }) {
@@ -83,6 +98,18 @@ class _$MomentCopyWithImpl<$Res, $Val extends Moment>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
+            userId: null == userId
+                ? _value.userId
+                : userId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            username: null == username
+                ? _value.username
+                : username // ignore: cast_nullable_to_non_nullable
+                      as String,
+            userAvatar: freezed == userAvatar
+                ? _value.userAvatar
+                : userAvatar // ignore: cast_nullable_to_non_nullable
+                      as String?,
             content: null == content
                 ? _value.content
                 : content // ignore: cast_nullable_to_non_nullable
@@ -99,6 +126,14 @@ class _$MomentCopyWithImpl<$Res, $Val extends Moment>
                 ? _value.likes
                 : likes // ignore: cast_nullable_to_non_nullable
                       as int,
+            commentsCount: null == commentsCount
+                ? _value.commentsCount
+                : commentsCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isLiked: null == isLiked
+                ? _value.isLiked
+                : isLiked // ignore: cast_nullable_to_non_nullable
+                      as bool,
             location: freezed == location
                 ? _value.location
                 : location // ignore: cast_nullable_to_non_nullable
@@ -123,10 +158,15 @@ abstract class _$$MomentImplCopyWith<$Res> implements $MomentCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
+    String userId,
+    String username,
+    String? userAvatar,
     String content,
     DateTime createdAt,
     List<String> imageUrls,
     int likes,
+    int commentsCount,
+    bool isLiked,
     String? location,
     List<String>? tags,
   });
@@ -147,10 +187,15 @@ class __$$MomentImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? userId = null,
+    Object? username = null,
+    Object? userAvatar = freezed,
     Object? content = null,
     Object? createdAt = null,
     Object? imageUrls = null,
     Object? likes = null,
+    Object? commentsCount = null,
+    Object? isLiked = null,
     Object? location = freezed,
     Object? tags = freezed,
   }) {
@@ -160,6 +205,18 @@ class __$$MomentImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
+        userId: null == userId
+            ? _value.userId
+            : userId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        username: null == username
+            ? _value.username
+            : username // ignore: cast_nullable_to_non_nullable
+                  as String,
+        userAvatar: freezed == userAvatar
+            ? _value.userAvatar
+            : userAvatar // ignore: cast_nullable_to_non_nullable
+                  as String?,
         content: null == content
             ? _value.content
             : content // ignore: cast_nullable_to_non_nullable
@@ -176,6 +233,14 @@ class __$$MomentImplCopyWithImpl<$Res>
             ? _value.likes
             : likes // ignore: cast_nullable_to_non_nullable
                   as int,
+        commentsCount: null == commentsCount
+            ? _value.commentsCount
+            : commentsCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isLiked: null == isLiked
+            ? _value.isLiked
+            : isLiked // ignore: cast_nullable_to_non_nullable
+                  as bool,
         location: freezed == location
             ? _value.location
             : location // ignore: cast_nullable_to_non_nullable
@@ -194,10 +259,15 @@ class __$$MomentImplCopyWithImpl<$Res>
 class _$MomentImpl implements _Moment {
   const _$MomentImpl({
     required this.id,
+    required this.userId,
+    required this.username,
+    this.userAvatar,
     required this.content,
     required this.createdAt,
     final List<String> imageUrls = const [],
     this.likes = 0,
+    this.commentsCount = 0,
+    this.isLiked = false,
     this.location,
     final List<String>? tags,
   }) : _imageUrls = imageUrls,
@@ -208,6 +278,12 @@ class _$MomentImpl implements _Moment {
 
   @override
   final String id;
+  @override
+  final String userId;
+  @override
+  final String username;
+  @override
+  final String? userAvatar;
   @override
   final String content;
   @override
@@ -225,6 +301,12 @@ class _$MomentImpl implements _Moment {
   @JsonKey()
   final int likes;
   @override
+  @JsonKey()
+  final int commentsCount;
+  @override
+  @JsonKey()
+  final bool isLiked;
+  @override
   final String? location;
   final List<String>? _tags;
   @override
@@ -238,7 +320,7 @@ class _$MomentImpl implements _Moment {
 
   @override
   String toString() {
-    return 'Moment(id: $id, content: $content, createdAt: $createdAt, imageUrls: $imageUrls, likes: $likes, location: $location, tags: $tags)';
+    return 'Moment(id: $id, userId: $userId, username: $username, userAvatar: $userAvatar, content: $content, createdAt: $createdAt, imageUrls: $imageUrls, likes: $likes, commentsCount: $commentsCount, isLiked: $isLiked, location: $location, tags: $tags)';
   }
 
   @override
@@ -247,6 +329,11 @@ class _$MomentImpl implements _Moment {
         (other.runtimeType == runtimeType &&
             other is _$MomentImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.userId, userId) || other.userId == userId) &&
+            (identical(other.username, username) ||
+                other.username == username) &&
+            (identical(other.userAvatar, userAvatar) ||
+                other.userAvatar == userAvatar) &&
             (identical(other.content, content) || other.content == content) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -255,6 +342,9 @@ class _$MomentImpl implements _Moment {
               _imageUrls,
             ) &&
             (identical(other.likes, likes) || other.likes == likes) &&
+            (identical(other.commentsCount, commentsCount) ||
+                other.commentsCount == commentsCount) &&
+            (identical(other.isLiked, isLiked) || other.isLiked == isLiked) &&
             (identical(other.location, location) ||
                 other.location == location) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
@@ -265,10 +355,15 @@ class _$MomentImpl implements _Moment {
   int get hashCode => Object.hash(
     runtimeType,
     id,
+    userId,
+    username,
+    userAvatar,
     content,
     createdAt,
     const DeepCollectionEquality().hash(_imageUrls),
     likes,
+    commentsCount,
+    isLiked,
     location,
     const DeepCollectionEquality().hash(_tags),
   );
@@ -290,10 +385,15 @@ class _$MomentImpl implements _Moment {
 abstract class _Moment implements Moment {
   const factory _Moment({
     required final String id,
+    required final String userId,
+    required final String username,
+    final String? userAvatar,
     required final String content,
     required final DateTime createdAt,
     final List<String> imageUrls,
     final int likes,
+    final int commentsCount,
+    final bool isLiked,
     final String? location,
     final List<String>? tags,
   }) = _$MomentImpl;
@@ -303,6 +403,12 @@ abstract class _Moment implements Moment {
   @override
   String get id;
   @override
+  String get userId;
+  @override
+  String get username;
+  @override
+  String? get userAvatar;
+  @override
   String get content;
   @override
   DateTime get createdAt;
@@ -310,6 +416,10 @@ abstract class _Moment implements Moment {
   List<String> get imageUrls;
   @override
   int get likes;
+  @override
+  int get commentsCount;
+  @override
+  bool get isLiked;
   @override
   String? get location;
   @override

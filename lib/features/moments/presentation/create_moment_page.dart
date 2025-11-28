@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../shared/design/app_colors.dart';
 import '../application/moments_provider.dart';
@@ -16,36 +19,115 @@ class CreateMomentPage extends ConsumerStatefulWidget {
 class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
   final _contentController = TextEditingController();
   final _locationController = TextEditingController();
-  final _imageUrlController = TextEditingController();
   final _tagController = TextEditingController();
-  
-  final List<String> _imageUrls = [];
+  final _imagePicker = ImagePicker();
+
+  final List<String> _imagePaths = [];
   final List<String> _tags = [];
-  
+
   bool _isSubmitting = false;
 
   @override
   void dispose() {
     _contentController.dispose();
     _locationController.dispose();
-    _imageUrlController.dispose();
     _tagController.dispose();
     super.dispose();
   }
 
-  void _addImageUrl() {
-    final url = _imageUrlController.text.trim();
-    if (url.isNotEmpty) {
-      setState(() {
-        _imageUrls.add(url);
-        _imageUrlController.clear();
-      });
+  /// 选择图片（从相册）
+  Future<void> _pickImages() async {
+    if (_imagePaths.length >= 9) {
+      _showError('最多只能添加9张图片');
+      return;
+    }
+
+    try {
+      final images = await _imagePicker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (images.isNotEmpty) {
+        final remaining = 9 - _imagePaths.length;
+        final toAdd = images.take(remaining);
+
+        setState(() {
+          _imagePaths.addAll(toAdd.map((img) => img.path));
+        });
+
+        if (images.length > remaining) {
+          _showError('已选择最多9张图片，超出部分已忽略');
+        }
+      }
+    } catch (e) {
+      _showError('选择图片失败，请重试');
     }
   }
 
-  void _removeImageUrl(int index) {
+  /// 拍照
+  Future<void> _takePicture() async {
+    if (_imagePaths.length >= 9) {
+      _showError('最多只能添加9张图片');
+      return;
+    }
+
+    try {
+      final image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _imagePaths.add(image.path);
+        });
+      }
+    } catch (e) {
+      _showError('拍照失败，请重试');
+    }
+  }
+
+  /// 显示图片选择方式对话框
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppColors.candyBlue),
+              title: const Text('从相册选择'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImages();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppColors.candyPink),
+              title: const Text('拍照'),
+              onTap: () {
+                Navigator.pop(context);
+                _takePicture();
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _removeImage(int index) {
     setState(() {
-      _imageUrls.removeAt(index);
+      _imagePaths.removeAt(index);
     });
   }
 
@@ -81,7 +163,7 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
     try {
       final input = CreateMomentInput(
         content: content,
-        imageUrls: _imageUrls,
+        imagePaths: _imagePaths,
         tags: _tags,
         location: _locationController.text.trim().isEmpty
             ? null
@@ -97,7 +179,7 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
         );
       }
     } catch (e) {
-      _showError('发布失败，请重试');
+      _showError('发布失败: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -162,6 +244,7 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 内容输入
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -192,8 +275,8 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
-            // Image URLs
+
+            // 图片选择和预览
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -210,50 +293,113 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('图片链接', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _imageUrlController,
-                          decoration: const InputDecoration(
-                            hintText: '输入图片URL',
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          onSubmitted: (_) => _addImageUrl(),
-                        ),
+                      const Text(
+                        '图片',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle, color: AppColors.candyBlue),
-                        onPressed: _addImageUrl,
+                      Text(
+                        '${_imagePaths.length}/9',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ],
                   ),
-                  if (_imageUrls.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: List.generate(_imageUrls.length, (index) {
-                        return Chip(
-                          label: Text(
-                            '图片 ${index + 1}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          onDeleted: () => _removeImageUrl(index),
-                          deleteIcon: const Icon(Icons.close, size: 16),
-                        );
-                      }),
+                  const SizedBox(height: 12),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1,
                     ),
-                  ],
+                    itemCount: _imagePaths.length < 9
+                        ? _imagePaths.length + 1
+                        : _imagePaths.length,
+                    itemBuilder: (context, index) {
+                      // 添加图片按钮
+                      if (index == _imagePaths.length && _imagePaths.length < 9) {
+                        return GestureDetector(
+                          onTap: _showImageSourceDialog,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade300,
+                                width: 2,
+                                style: BorderStyle.solid,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  color: Colors.grey.shade400,
+                                  size: 32,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '添加图片',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      // 图片预览
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(_imagePaths[index]),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () => _removeImage(index),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-            // Tags
+            // 标签
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -312,7 +458,7 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
             ),
             const SizedBox(height: 16),
 
-            // Location
+            // 位置
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -326,31 +472,27 @@ class _CreateMomentPageState extends ConsumerState<CreateMomentPage> {
                   ),
                 ],
               ),
-              child: Column(
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.black54,
-                        size: 20,
+                  const Icon(
+                    Icons.location_on_outlined,
+                    color: Colors.black54,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _locationController,
+                      decoration: const InputDecoration(
+                        hintText: '添加位置（可选）',
+                        hintStyle: TextStyle(color: Colors.black38),
+                        border: InputBorder.none,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _locationController,
-                          decoration: const InputDecoration(
-                            hintText: '添加位置（可选）',
-                            hintStyle: TextStyle(color: Colors.black38),
-                            border: InputBorder.none,
-                          ),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

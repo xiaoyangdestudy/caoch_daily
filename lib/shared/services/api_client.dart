@@ -164,6 +164,114 @@ class ApiClient {
     }
   }
 
+  /// PUT请求
+  Future<Response<T>> put<T>(String path, {dynamic data}) async {
+    try {
+      return await _dio.put<T>(path, data: data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== 文件上传 ====================
+
+  /// 上传图片文件
+  /// 返回上传后的图片URL列表
+  Future<List<String>> uploadImages(List<String> filePaths) async {
+    try {
+      final formData = FormData();
+
+      for (var i = 0; i < filePaths.length; i++) {
+        formData.files.add(MapEntry(
+          'images',
+          await MultipartFile.fromFile(
+            filePaths[i],
+            filename: 'image_$i.jpg',
+          ),
+        ));
+      }
+
+      final response = await _dio.post(
+        '/upload/images',
+        data: formData,
+        options: Options(
+          headers: {'Content-Type': 'multipart/form-data'},
+        ),
+      );
+
+      if (response.data['urls'] != null) {
+        return List<String>.from(response.data['urls'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== 动态相关API ====================
+
+  /// 获取动态列表
+  Future<List<Map<String, dynamic>>> getMoments({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    try {
+      final response = await get('/moments', queryParameters: {
+        'page': page,
+        'limit': limit,
+      });
+
+      if (response.data['moments'] != null) {
+        return List<Map<String, dynamic>>.from(
+          response.data['moments'] as List,
+        );
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建动态
+  Future<Map<String, dynamic>> createMoment({
+    required String content,
+    List<String>? imageUrls,
+    String? location,
+    List<String>? tags,
+  }) async {
+    try {
+      final response = await post('/moments', data: {
+        'content': content,
+        if (imageUrls != null && imageUrls.isNotEmpty) 'imageUrls': imageUrls,
+        if (location != null) 'location': location,
+        if (tags != null) 'tags': tags,
+      });
+
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除动态
+  Future<void> deleteMoment(String momentId) async {
+    try {
+      await delete('/moments/$momentId');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 点赞/取消点赞动态
+  Future<Map<String, dynamic>> toggleLikeMoment(String momentId) async {
+    try {
+      final response = await put('/moments/$momentId/like');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== 错误处理 ====================
 
   /// 统一错误处理

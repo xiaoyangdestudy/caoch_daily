@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../shared/providers/api_provider.dart';
 import '../../../shared/providers/preferences_provider.dart';
 import '../data/moments_repository.dart';
 import '../domain/moment_model.dart';
 
 final momentsRepositoryProvider = Provider<MomentsRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return MomentsRepository(prefs);
+  final apiClient = ref.watch(apiClientProvider);
+  return MomentsRepository(prefs, apiClient);
 });
 
 final momentsProvider =
