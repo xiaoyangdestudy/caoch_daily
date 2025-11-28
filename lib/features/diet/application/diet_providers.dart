@@ -9,7 +9,8 @@ import '../domain/diet_models.dart';
 final dietRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
   final api = ref.watch(apiClientProvider);
-  return DietRepository(store, api);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return DietRepository(store, api, prefs);
 });
 
 final dietRecordsProvider =

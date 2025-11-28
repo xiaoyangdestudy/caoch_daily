@@ -10,7 +10,8 @@ import '../domain/sleep_record.dart';
 final sleepRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
   final api = ref.watch(apiClientProvider);
-  return SleepRepository(store, api);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return SleepRepository(store, api, prefs);
 });
 
 final sleepRecordsProvider =

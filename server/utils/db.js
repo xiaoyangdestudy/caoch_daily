@@ -4,20 +4,31 @@ const path = require('path');
 const DB_DIR = path.join(__dirname, '../data');
 const USERS_FILE = path.join(DB_DIR, 'users.json');
 const MOMENTS_FILE = path.join(DB_DIR, 'moments.json');
+const WORKOUTS_FILE = path.join(DB_DIR, 'workouts.json');
+const MEALS_FILE = path.join(DB_DIR, 'meals.json');
+const SLEEP_FILE = path.join(DB_DIR, 'sleep.json');
+const FOCUS_FILE = path.join(DB_DIR, 'focus.json');
+const REVIEWS_FILE = path.join(DB_DIR, 'reviews.json');
 
 // 确保数据目录存在
 if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
-// 初始化数据文件
-if (!fs.existsSync(USERS_FILE)) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
-}
+// 初始化所有数据文件
+const initFile = (filePath) => {
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, JSON.stringify([], null, 2));
+  }
+};
 
-if (!fs.existsSync(MOMENTS_FILE)) {
-  fs.writeFileSync(MOMENTS_FILE, JSON.stringify([], null, 2));
-}
+initFile(USERS_FILE);
+initFile(MOMENTS_FILE);
+initFile(WORKOUTS_FILE);
+initFile(MEALS_FILE);
+initFile(SLEEP_FILE);
+initFile(FOCUS_FILE);
+initFile(REVIEWS_FILE);
 
 // 读取数据
 const readData = (filePath) => {
@@ -115,4 +126,82 @@ const moments = {
   }
 };
 
-module.exports = { users, moments };
+// 通用数据操作工厂函数
+const createDataOperations = (filePath) => ({
+  getAll: () => readData(filePath),
+
+  getByUserId: (userId) => {
+    const allData = readData(filePath);
+    return allData.filter(item => item.userId === userId)
+      .sort((a, b) => new Date(b.createdAt || b.startTime || b.timestamp) - new Date(a.createdAt || a.startTime || a.timestamp));
+  },
+
+  findById: (id) => {
+    const allData = readData(filePath);
+    return allData.find(item => item.id === id);
+  },
+
+  create: (item) => {
+    const allData = readData(filePath);
+    allData.push(item);
+    writeData(filePath, allData);
+    return item;
+  },
+
+  createBatch: (items) => {
+    const allData = readData(filePath);
+    allData.push(...items);
+    writeData(filePath, allData);
+    return items;
+  },
+
+  update: (id, updates) => {
+    const allData = readData(filePath);
+    const index = allData.findIndex(item => item.id === id);
+    if (index !== -1) {
+      allData[index] = { ...allData[index], ...updates };
+      writeData(filePath, allData);
+      return allData[index];
+    }
+    return null;
+  },
+
+  delete: (id) => {
+    const allData = readData(filePath);
+    const filtered = allData.filter(item => item.id !== id);
+    writeData(filePath, filtered);
+    return filtered.length < allData.length;
+  },
+
+  deleteByUserId: (userId) => {
+    const allData = readData(filePath);
+    const filtered = allData.filter(item => item.userId !== userId);
+    writeData(filePath, filtered);
+    return allData.length - filtered.length;
+  }
+});
+
+// 运动记录操作
+const workouts = createDataOperations(WORKOUTS_FILE);
+
+// 饮食记录操作
+const meals = createDataOperations(MEALS_FILE);
+
+// 睡眠记录操作
+const sleep = createDataOperations(SLEEP_FILE);
+
+// 专注记录操作
+const focus = createDataOperations(FOCUS_FILE);
+
+// 复盘记录操作
+const reviews = createDataOperations(REVIEWS_FILE);
+
+module.exports = {
+  users,
+  moments,
+  workouts,
+  meals,
+  sleep,
+  focus,
+  reviews
+};

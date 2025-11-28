@@ -9,7 +9,8 @@ import '../domain/focus_session.dart';
 final focusRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
   final api = ref.watch(apiClientProvider);
-  return FocusRepository(store, api);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return FocusRepository(store, api, prefs);
 });
 
 final focusSessionsProvider =

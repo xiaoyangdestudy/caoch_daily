@@ -6,6 +6,11 @@ import '../../../app/router/app_routes.dart';
 import '../../../shared/providers/api_provider.dart';
 import '../../../shared/providers/preferences_provider.dart';
 import '../../../features/review/application/review_providers.dart';
+import '../../../features/sports/application/sports_providers.dart';
+import '../../../features/diet/application/diet_providers.dart';
+import '../../../features/sleep/application/sleep_providers.dart';
+import '../../../features/work/application/work_providers.dart';
+import '../../../features/moments/application/moments_provider.dart';
 import 'widgets/auth_widgets.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -86,21 +91,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
 
-      // 登录成功后，从服务器同步数据
+      // 登录成功后，刷新所有数据Provider以从服务器同步数据
+      // 由于所有repository的fetchAll()已经实现了优先从服务器获取的逻辑，
+      // 我们只需要invalidate provider，让它们重新加载数据即可
       try {
-        final reviewRepo = ref.read(reviewRepositoryProvider);
-        await reviewRepo.syncFromServer();
-        print('✓ 已从服务器同步数据');
+        print('🔄 开始同步数据...');
 
-        // 刷新所有数据Provider，强制重新加载
-        ref.invalidate(reviewRepositoryProvider);
+        // 刷新所有模块的provider
         ref.invalidate(reviewEntriesProvider);
+        ref.invalidate(workoutListProvider);
+        ref.invalidate(dietRecordsProvider);
+        ref.invalidate(sleepRecordsProvider);
+        ref.invalidate(focusSessionsProvider);
+        ref.invalidate(momentsProvider);
 
+        print('✓ 数据同步完成');
       } catch (e) {
         print('⚠️ 同步数据失败: $e');
-        // 同步失败不影响登录流程，但仍然刷新Provider
-        ref.invalidate(reviewRepositoryProvider);
-        ref.invalidate(reviewEntriesProvider);
+        // 同步失败不影响登录流程
       }
 
       if (mounted) {

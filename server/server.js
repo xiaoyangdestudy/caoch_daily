@@ -5,6 +5,11 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const momentsRoutes = require('./routes/moments');
 const uploadRoutes = require('./routes/upload');
+const workoutsRoutes = require('./routes/workouts');
+const mealsRoutes = require('./routes/meals');
+const sleepRoutes = require('./routes/sleep');
+const focusRoutes = require('./routes/focus');
+const reviewsRoutes = require('./routes/reviews');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +26,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/moments', momentsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/workouts', workoutsRoutes);
+app.use('/api/meals', mealsRoutes);
+app.use('/api/sleep', sleepRoutes);
+app.use('/api/focus', focusRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

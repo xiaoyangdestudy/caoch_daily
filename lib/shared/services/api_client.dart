@@ -272,6 +272,221 @@ class ApiClient {
     }
   }
 
+  // ==================== 运动记录API ====================
+
+  /// 获取运动记录列表
+  Future<List<Map<String, dynamic>>> getWorkouts() async {
+    try {
+      final response = await get('/workouts');
+      if (response.data['workouts'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['workouts'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建运动记录
+  Future<Map<String, dynamic>> createWorkout(Map<String, dynamic> workout) async {
+    try {
+      final response = await post('/workouts', data: workout);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 批量创建运动记录
+  Future<void> batchCreateWorkouts(List<Map<String, dynamic>> workouts) async {
+    try {
+      await post('/workouts/batch', data: {'workouts': workouts});
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除运动记录
+  Future<void> deleteWorkout(String id) async {
+    try {
+      await delete('/workouts/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== 饮食记录API ====================
+
+  /// 获取饮食记录列表
+  Future<List<Map<String, dynamic>>> getMeals() async {
+    try {
+      final response = await get('/meals');
+      if (response.data['meals'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['meals'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建饮食记录
+  Future<Map<String, dynamic>> createMeal(Map<String, dynamic> meal) async {
+    try {
+      final response = await post('/meals', data: meal);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 批量创建饮食记录
+  Future<void> batchCreateMeals(List<Map<String, dynamic>> meals) async {
+    try {
+      await post('/meals/batch', data: {'meals': meals});
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除饮食记录
+  Future<void> deleteMeal(String id) async {
+    try {
+      await delete('/meals/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== 睡眠记录API ====================
+
+  /// 获取睡眠记录列表
+  Future<List<Map<String, dynamic>>> getSleep() async {
+    try {
+      final response = await get('/sleep');
+      if (response.data['sleep'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['sleep'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建睡眠记录
+  Future<Map<String, dynamic>> createSleep(Map<String, dynamic> sleep) async {
+    try {
+      final response = await post('/sleep', data: sleep);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 批量创建睡眠记录
+  Future<void> batchCreateSleep(List<Map<String, dynamic>> sleep) async {
+    try {
+      await post('/sleep/batch', data: {'sleep': sleep});
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除睡眠记录
+  Future<void> deleteSleep(String id) async {
+    try {
+      await delete('/sleep/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== 专注记录API ====================
+
+  /// 获取专注记录列表
+  Future<List<Map<String, dynamic>>> getFocus() async {
+    try {
+      final response = await get('/focus');
+      if (response.data['focus'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['focus'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建专注记录
+  Future<Map<String, dynamic>> createFocus(Map<String, dynamic> focus) async {
+    try {
+      final response = await post('/focus', data: focus);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 批量创建专注记录
+  Future<void> batchCreateFocus(List<Map<String, dynamic>> focus) async {
+    try {
+      await post('/focus/batch', data: {'focus': focus});
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除专注记录
+  Future<void> deleteFocus(String id) async {
+    try {
+      await delete('/focus/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== 复盘记录API ====================
+
+  /// 获取复盘记录列表
+  Future<List<Map<String, dynamic>>> getReviews() async {
+    try {
+      final response = await get('/reviews');
+      if (response.data['reviews'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['reviews'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建复盘记录
+  Future<Map<String, dynamic>> createReview(Map<String, dynamic> review) async {
+    try {
+      final response = await post('/reviews', data: review);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 批量创建复盘记录
+  Future<void> batchCreateReviews(List<Map<String, dynamic>> reviews) async {
+    try {
+      await post('/reviews/batch', data: {'reviews': reviews});
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除复盘记录
+  Future<void> deleteReview(String id) async {
+    try {
+      await delete('/reviews/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== 错误处理 ====================
 
   /// 统一错误处理

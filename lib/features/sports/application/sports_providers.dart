@@ -7,7 +7,8 @@ import '../domain/workout_record.dart';
 final workoutRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
   final api = ref.watch(apiClientProvider);
-  return WorkoutRepository(store, api);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return WorkoutRepository(store, api, prefs);
 });
 
 final workoutListProvider =

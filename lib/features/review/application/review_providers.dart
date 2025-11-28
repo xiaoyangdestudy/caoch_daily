@@ -9,7 +9,8 @@ import '../domain/review_record.dart';
 final reviewRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
   final api = ref.watch(apiClientProvider);
-  return ReviewRepository(store, api);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ReviewRepository(store, api, prefs);
 });
 
 final reviewEntriesProvider =
