@@ -16,172 +16,181 @@ class SportsPage extends ConsumerWidget {
     final recentRecordsAsync = ref.watch(workoutListProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FC),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 0,
-            floating: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                  onPressed: () => context.pop(),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 0,
+              floating: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: CircleAvatar(
+                  backgroundColor: Colors.white.withOpacity(0.8),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                    onPressed: () => context.pop(),
+                  ),
                 ),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '本周目标',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black45,
-                      letterSpacing: 1.5,
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '本周目标',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black45,
+                        letterSpacing: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${weeklyStats['count']} 次运动',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.candyGreen.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          '保持不错 💪',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.candyGreenDark,
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${weeklyStats['count']} 次运动',
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black87,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  const _LogWorkoutCard(),
-                  const SizedBox(height: 32),
-                  const Text(
-                    '本周数据',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black87,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.candyGreen.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            '保持不错 💪',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.candyGreenDark,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatBox(
-                          label: '总距离',
-                          value: (weeklyStats['distance'] as double)
-                              .toStringAsFixed(1),
-                          unit: 'km',
-                          icon: Icons.map_outlined,
-                          color: AppColors.candyBlue,
-                        ),
+                    const SizedBox(height: 24),
+                    const _LogWorkoutCard(),
+                    const SizedBox(height: 32),
+                    const Text(
+                      '本周数据',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black87,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatBox(
-                          label: '消耗',
-                          value: (weeklyStats['calories'] as int).toString(),
-                          unit: 'kcal',
-                          icon: Icons.local_fire_department_outlined,
-                          color: AppColors.candyOrange,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _StatBox(
+                            label: '总距离',
+                            value: (weeklyStats['distance'] as double)
+                                .toStringAsFixed(1),
+                            unit: 'km',
+                            icon: Icons.map_outlined,
+                            color: AppColors.candyBlue,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatBox(
-                          label: '时长',
-                          value: (weeklyStats['duration'] as double)
-                              .toStringAsFixed(1),
-                          unit: 'hr',
-                          icon: Icons.timer_outlined,
-                          color: AppColors.candyPurple,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _StatBox(
+                            label: '消耗',
+                            value: (weeklyStats['calories'] as int).toString(),
+                            unit: 'kcal',
+                            icon: Icons.local_fire_department_outlined,
+                            color: AppColors.candyOrange,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        '最近记录',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black87,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _StatBox(
+                            label: '时长',
+                            value: (weeklyStats['duration'] as double)
+                                .toStringAsFixed(1),
+                            unit: 'hr',
+                            icon: Icons.timer_outlined,
+                            color: AppColors.candyPurple,
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          '查看全部',
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '最近记录',
                           style: TextStyle(
-                            color: Colors.black54,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black87,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  recentRecordsAsync.when(
-                    data: (records) {
-                      if (records.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(24.0),
-                            child: Text('暂无记录，快去运动吧！'),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            '查看全部',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        );
-                      }
-                      return Column(
-                        children: records.take(5).map((record) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _ActivityItem(record: record),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    recentRecordsAsync.when(
+                      data: (records) {
+                        if (records.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Text('暂无记录，快去运动吧！'),
+                            ),
                           );
-                        }).toList(),
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Text('加载失败: $e'),
-                  ),
-                ],
+                        }
+                        return Column(
+                          children: records.take(5).map((record) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _ActivityItem(record: record),
+                            );
+                          }).toList(),
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Text('加载失败: $e'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -321,9 +330,10 @@ class _StatBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppShadows.white3d,
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,9 +372,10 @@ class _ActivityItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(24),
         boxShadow: AppShadows.white3d,
+        border: Border.all(color: Colors.white),
       ),
       child: Row(
         children: [

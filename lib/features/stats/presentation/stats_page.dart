@@ -16,50 +16,59 @@ class StatsPage extends ConsumerWidget {
     final notifier = ref.read(statsProvider.notifier);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '统计',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black87,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '统计',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black87,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    _DateSelector(
-                      period: state.period,
-                      focusedDate: state.focusedDate,
-                      onPeriodChanged: notifier.setPeriod,
-                      onPrevious: notifier.previousPeriod,
-                      onNext: notifier.nextPeriod,
-                    ),
-                    const SizedBox(height: 24),
-                    _SummaryCards(
-                      duration: state.totalDurationMinutes,
-                      calories: state.totalCalories,
-                      count: state.totalWorkouts,
-                    ),
-                    const SizedBox(height: 24),
-                    _ActivityChart(
-                      period: state.period,
-                      dailyDuration: state.dailyDuration,
-                    ),
-                    const SizedBox(height: 24),
-                    _RecentActivityList(records: state.filteredRecords),
-                  ],
+                      const SizedBox(height: 24),
+                      _DateSelector(
+                        period: state.period,
+                        focusedDate: state.focusedDate,
+                        onPeriodChanged: notifier.setPeriod,
+                        onPrevious: notifier.previousPeriod,
+                        onNext: notifier.nextPeriod,
+                      ),
+                      const SizedBox(height: 24),
+                      _SummaryCards(
+                        duration: state.totalDurationMinutes,
+                        calories: state.totalCalories,
+                        count: state.totalWorkouts,
+                      ),
+                      const SizedBox(height: 24),
+                      _ActivityChart(
+                        period: state.period,
+                        dailyDuration: state.dailyDuration,
+                      ),
+                      const SizedBox(height: 24),
+                      _RecentActivityList(records: state.filteredRecords),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -100,9 +109,10 @@ class _DateSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppShadows.cardSoft,
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         children: [
@@ -323,9 +333,10 @@ class _ActivityChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppShadows.cardSoft,
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,9 +465,10 @@ class _RecentActivityList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppShadows.cardSoft,
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -21,149 +21,80 @@ class MomentsPage extends ConsumerWidget {
     final momentsAsync = ref.watch(momentsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await ref.read(momentsProvider.notifier).refresh();
-          },
-          color: AppColors.candyBlue,
-          child: CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        '动态',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black87,
-                        ),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '精彩瞬间',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black87,
                       ),
-                      FilledButton.icon(
-                        onPressed: () async {
-                          final result = await context.push(AppRoutes.createMoment);
-                          if (result == true) {
-                            ref.read(momentsProvider.notifier).refresh();
-                          }
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.candyBlue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                    ),
+                    IconButton(
+                      onPressed: () => context.push(AppRoutes.createMoment),
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.black,
+                          shape: BoxShape.circle,
                         ),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text(
-                          '发布',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        child: const Icon(Icons.add, color: Colors.white, size: 20),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-
-              // Content
-              momentsAsync.when(
-                data: (moments) {
-                  if (moments.isEmpty) {
-                    return SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
+              Expanded(
+                child: momentsAsync.when(
+                  data: (moments) {
+                    if (moments.isEmpty) {
+                      return Center(
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: AppShadows.cardSoft,
-                              ),
-                              child: Icon(
-                                Icons.photo_library_outlined,
-                                size: 48,
-                                color: AppColors.candyBlue.withAlpha(128),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
+                            Icon(Icons.photo_library_outlined,
+                                size: 64, color: Colors.grey.shade300),
+                            const SizedBox(height: 16),
                             Text(
-                              '还没有动态',
+                              '还没有动态，快去发布吧！',
                               style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '分享你的生活瞬间，记录美好时刻',
-                              style: TextStyle(
-                                fontSize: 14,
                                 color: Colors.grey.shade400,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  }
-
-                  // 瀑布流布局
-                  return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                    sliver: SliverMasonryGrid.count(
+                      );
+                    }
+                    return MasonryGridView.count(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childCount: moments.length,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      itemCount: moments.length,
                       itemBuilder: (context, index) {
                         return _MomentCard(moment: moments[index]);
                       },
-                    ),
-                  );
-                },
-                loading: () => const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, stack) => SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 48,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Text(
-                            '加载失败: ${error.toString()}',
-                            style: TextStyle(color: Colors.grey.shade600),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            ref.read(momentsProvider.notifier).refresh();
-                          },
-                          child: const Text('重试'),
-                        ),
-                      ],
-                    ),
-                  ),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(child: Text('加载失败: $e')),
                 ),
               ),
             ],
@@ -185,20 +116,14 @@ class _MomentCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppShadows.cardSoft,
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 图片（如果有）
           if (moment.imageUrls.isNotEmpty)
             _ImageSection(imageUrls: moment.imageUrls),
 

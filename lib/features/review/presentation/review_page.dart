@@ -15,140 +15,150 @@ class ReviewPage extends ConsumerWidget {
     final entriesAsync = ref.watch(reviewEntriesProvider);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: SafeArea(
-        child: entriesAsync.when(
-          data: (entries) {
-            final todayIndex = entries.indexWhere((entry) => entry.isToday);
-            ReviewEntry? todayEntry;
-            late final List<ReviewEntry> history;
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: SafeArea(
+          child: entriesAsync.when(
+            data: (entries) {
+              final todayIndex = entries.indexWhere((entry) => entry.isToday);
+              ReviewEntry? todayEntry;
+              late final List<ReviewEntry> history;
 
-            if (todayIndex >= 0) {
-              todayEntry = entries[todayIndex];
-              history = [
-                ...entries.sublist(0, todayIndex),
-                ...entries.sublist(todayIndex + 1),
-              ];
-            } else {
-              history = entries;
-            }
+              if (todayIndex >= 0) {
+                todayEntry = entries[todayIndex];
+                history = [
+                  ...entries.sublist(0, todayIndex),
+                  ...entries.sublist(todayIndex + 1),
+                ];
+              } else {
+                history = entries;
+              }
 
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          '复盘',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        if (todayEntry != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.candyBlue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  size: 16,
-                                  color: AppColors.candyBlue,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '已完成',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.candyBlue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _ReviewHeroCard(
-                          entry: todayEntry,
-                          onDetail: todayEntry == null
-                              ? null
-                              : () => _showReviewDetail(context, todayEntry!),
-                          onStart: () => _openReviewSheet(context, ref),
-                        ),
-                        if (history.isNotEmpty) const SizedBox(height: 24),
-                        if (history.isNotEmpty)
-                          const Text(
-                            '历史复盘',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (history.isEmpty)
+              return CustomScrollView(
+                slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: AppShadows.white3d,
-                        ),
-                        child: const Text(
-                          '还没有历史复盘记录。坚持每天 3 分钟，看看自己如何进步！',
-                          style: TextStyle(color: Colors.black54),
-                        ),
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '复盘',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          if (todayEntry != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.candyBlue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: 16,
+                                    color: AppColors.candyBlue,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '已完成',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.candyBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final entry = history[index];
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: index == history.length - 1 ? 120 : 16,
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _ReviewHeroCard(
+                            entry: todayEntry,
+                            onDetail: todayEntry == null
+                                ? null
+                                : () => _showReviewDetail(context, todayEntry!),
+                            onStart: () => _openReviewSheet(context, ref),
                           ),
-                          child: _ReviewHistoryCard(
-                            entry: entry,
-                            onTap: () => _showReviewDetail(context, entry),
-                          ),
-                        );
-                      }, childCount: history.length),
+                          if (history.isNotEmpty) const SizedBox(height: 24),
+                          if (history.isNotEmpty)
+                            const Text(
+                              '历史复盘',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-              ],
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('加载失败：$error')),
+                  if (history.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: AppShadows.white3d,
+                            border: Border.all(color: Colors.white),
+                          ),
+                          child: const Text(
+                            '还没有历史复盘记录。坚持每天 3 分钟，看看自己如何进步！',
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final entry = history[index];
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: index == history.length - 1 ? 120 : 16,
+                            ),
+                            child: _ReviewHistoryCard(
+                              entry: entry,
+                              onTap: () => _showReviewDetail(context, entry),
+                            ),
+                          );
+                        }, childCount: history.length),
+                      ),
+                    ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(child: Text('加载失败：$error')),
+          ),
         ),
       ),
     );
@@ -318,9 +328,10 @@ class _ReviewHistoryCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withOpacity(0.8),
           borderRadius: BorderRadius.circular(20),
           boxShadow: AppShadows.white3d,
+          border: Border.all(color: Colors.white),
         ),
         child: Row(
           children: [

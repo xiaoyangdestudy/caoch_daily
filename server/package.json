@@ -1,25 +1,21 @@
 {
-  "name": "coach-daily-server",
+  "name": "caoch-daily-server",
   "version": "1.0.0",
-  "description": "Coach Daily API Server",
-  "main": "src/index.js",
+  "description": "Backend server for Caoch Daily app",
+  "main": "server.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "node src/index.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
-  "keywords": ["coach", "daily", "tracking", "api"],
+  "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "better-sqlite3": "^9.2.2",
+    "cors": "^2.8.5",
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
-    "dotenv": "^16.3.1",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5",
+    "multer": "^1.4.5-lts.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

@@ -15,111 +15,121 @@ class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(profileProvider);
     final notifier = ref.read(profileProvider.notifier);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                child: _ProfileHeader(
-                  overview: state.overview,
-                  onScan: () => _showFeatureComing(context),
-                  onSettings: () => _showSupportSheet(
-                    context,
-                    _SupportSheetType.about,
-                    version: state.version,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                  child: _ProfileHeader(
+                    overview: state.overview,
+                    onScan: () => _showFeatureComing(context),
+                    onSettings: () => _showSupportSheet(
+                      context,
+                      _SupportSheetType.about,
+                      version: state.version,
+                    ),
+                    onEdit: () => _openEditSheet(context, ref, state),
+                    onTimeline: () => _showFeatureComing(context),
                   ),
-                  onEdit: () => _openEditSheet(context, ref, state),
-                  onTimeline: () => _showFeatureComing(context),
                 ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: _ProfileMenuSection(
-                  title: '偏好设置',
-                  children: [
-                    _ProfileMenuItem(
-                      icon: Icons.notifications_none_rounded,
-                      label: '通知提醒',
-                      description: '每日 08:00 推送 · 睡前复盘提醒',
-                      type: _MenuItemType.toggle,
-                      switchValue: state.preferences.notificationsEnabled,
-                      onSwitchChanged: notifier.toggleNotifications,
-                    ),
-                    _ProfileMenuItem(
-                      icon: Icons.auto_awesome,
-                      label: '每日 AI Digest',
-                      description: '总结今日表现并生成建议',
-                      type: _MenuItemType.toggle,
-                      switchValue: state.preferences.dailyDigestEnabled,
-                      onSwitchChanged: notifier.toggleDailyDigest,
-                    ),
-                    _ProfileMenuItem(
-                      icon: Icons.palette_outlined,
-                      label: 'AI 风格设置',
-                      description: state.preferences.aiStyle.description,
-                      valueText: state.preferences.aiStyle.label,
-                      onTap: () => _showAiStyleSheet(
-                        context,
-                        ref,
-                        state.preferences.aiStyle,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _ProfileMenuSection(
+                    title: '偏好设置',
+                    children: [
+                      _ProfileMenuItem(
+                        icon: Icons.notifications_none_rounded,
+                        label: '通知提醒',
+                        description: '每日 08:00 推送 · 睡前复盘提醒',
+                        type: _MenuItemType.toggle,
+                        switchValue: state.preferences.notificationsEnabled,
+                        onSwitchChanged: notifier.toggleNotifications,
                       ),
-                    ),
-                    _ProfileMenuItem(
-                      icon: Icons.dark_mode_outlined,
-                      label: '深色模式',
-                      description: '实验功能，跟随系统切换',
-                      type: _MenuItemType.toggle,
-                      switchValue: state.preferences.followSystemTheme,
-                      onSwitchChanged: notifier.toggleFollowSystemTheme,
-                    ),
-                  ],
+                      _ProfileMenuItem(
+                        icon: Icons.auto_awesome,
+                        label: '每日 AI Digest',
+                        description: '总结今日表现并生成建议',
+                        type: _MenuItemType.toggle,
+                        switchValue: state.preferences.dailyDigestEnabled,
+                        onSwitchChanged: notifier.toggleDailyDigest,
+                      ),
+                      _ProfileMenuItem(
+                        icon: Icons.palette_outlined,
+                        label: 'AI 风格设置',
+                        description: state.preferences.aiStyle.description,
+                        valueText: state.preferences.aiStyle.label,
+                        onTap: () => _showAiStyleSheet(
+                          context,
+                          ref,
+                          state.preferences.aiStyle,
+                        ),
+                      ),
+                      _ProfileMenuItem(
+                        icon: Icons.dark_mode_outlined,
+                        label: '深色模式',
+                        description: '实验功能，跟随系统切换',
+                        type: _MenuItemType.toggle,
+                        switchValue: state.preferences.followSystemTheme,
+                        onSwitchChanged: notifier.toggleFollowSystemTheme,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // 数据同步Section
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: _DataSyncSection(),
+              // 数据同步Section
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _DataSyncSection(),
+                ),
               ),
-            ),
 
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),
-                child: Column(
-                  children: [
-                    Text(
-                      '保持好奇，保持行动',
-                      style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        fontWeight: FontWeight.w600,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),
+                  child: Column(
+                    children: [
+                      Text(
+                        '保持好奇，保持行动',
+                        style: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.version,
-                      style: const TextStyle(
-                        color: Colors.black38,
-                        fontSize: 12,
-                        letterSpacing: 1.2,
+                      const SizedBox(height: 8),
+                      Text(
+                        state.version,
+                        style: const TextStyle(
+                          color: Colors.black38,
+                          fontSize: 12,
+                          letterSpacing: 1.2,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -233,12 +243,9 @@ class _ProfileHeader extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.candyPurple.withValues(alpha: 0.1),
+                color: AppColors.candyPurple,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.candyPurple.withValues(alpha: 0.2),
-                  width: 2,
-                ),
+                boxShadow: AppShadows.purple3d,
               ),
               alignment: Alignment.center,
               child: Text(
@@ -277,9 +284,10 @@ class _ProfileHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white.withOpacity(0.8),
             borderRadius: BorderRadius.circular(24),
             boxShadow: AppShadows.cardSoft,
+            border: Border.all(color: Colors.white),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -311,6 +319,7 @@ class _ProfileHeader extends StatelessWidget {
                 onPressed: onTimeline,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.black87,
+                  backgroundColor: Colors.white.withOpacity(0.5),
                   side: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -415,7 +424,7 @@ class _ProfileMenuSection extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white.withOpacity(0.8),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(color: Colors.white),
             boxShadow: AppShadows.cardSoft,
@@ -503,10 +512,10 @@ class _ProfileMenuItem extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: AppColors.candyPurple.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: Colors.black87),
+              child: Icon(icon, color: AppColors.candyPurple, size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(

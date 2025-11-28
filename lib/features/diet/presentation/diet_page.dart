@@ -130,7 +130,7 @@ class _DietPageState extends ConsumerState<DietPage> {
     final recordsAsync = ref.watch(dietRecordsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FC),
+      backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openRecordOptions,
         backgroundColor: Colors.black,
@@ -140,80 +140,89 @@ class _DietPageState extends ConsumerState<DietPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 0,
-            floating: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                  onPressed: () => context.pop(),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/dashboard_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 0,
+              floating: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: CircleAvatar(
+                  backgroundColor: Colors.white.withOpacity(0.8),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                    onPressed: () => context.pop(),
+                  ),
+                ),
+              ),
+              title: const Text(
+                '饮食记录',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              centerTitle: true,
+            ),
+            SliverToBoxAdapter(
+              child: recordsAsync.when(
+                data: (records) {
+                  final grouped = _groupByMeal(records);
+                  final consumed = grouped.values
+                      .expand((element) => element)
+                      .fold<int>(
+                        0,
+                        (prev, record) => prev + record.totalCalories,
+                      );
+
+                  return Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        _CalorieSummaryCard(
+                          consumed: consumed,
+                          goal: _dailyGoal,
+                          selectedDate: _selectedDate,
+                          onSelectDate: _pickDate,
+                        ),
+                        const SizedBox(height: 24),
+                        for (final meal in MealType.values) ...[
+                          _MealSection(
+                            type: meal,
+                            records: grouped[meal] ?? [],
+                            onAdd: () => _openAddSheet(initialType: meal),
+                            onDelete: (id) =>
+                                ref.read(dietRecordsProvider.notifier).remove(id),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        const SizedBox(height: 80),
+                      ],
+                    ),
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, _) => Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text('加载失败：$error'),
                 ),
               ),
             ),
-            title: const Text(
-              '饮食记录',
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            centerTitle: true,
-          ),
-          SliverToBoxAdapter(
-            child: recordsAsync.when(
-              data: (records) {
-                final grouped = _groupByMeal(records);
-                final consumed = grouped.values
-                    .expand((element) => element)
-                    .fold<int>(
-                      0,
-                      (prev, record) => prev + record.totalCalories,
-                    );
-
-                return Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      _CalorieSummaryCard(
-                        consumed: consumed,
-                        goal: _dailyGoal,
-                        selectedDate: _selectedDate,
-                        onSelectDate: _pickDate,
-                      ),
-                      const SizedBox(height: 24),
-                      for (final meal in MealType.values) ...[
-                        _MealSection(
-                          type: meal,
-                          records: grouped[meal] ?? [],
-                          onAdd: () => _openAddSheet(initialType: meal),
-                          onDelete: (id) =>
-                              ref.read(dietRecordsProvider.notifier).remove(id),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      const SizedBox(height: 80),
-                    ],
-                  ),
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, _) => Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text('加载失败：$error'),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -385,9 +394,10 @@ class _MealSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(24),
         boxShadow: AppShadows.white3d,
+        border: Border.all(color: Colors.white),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,9 +488,9 @@ class _MealRecordTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Colors.white.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.5)),
       ),
       child: Row(
         children: [
