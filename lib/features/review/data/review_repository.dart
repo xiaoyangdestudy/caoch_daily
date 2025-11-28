@@ -43,6 +43,9 @@ class ReviewRepository {
 
   /// 获取所有记录（优先服务器，失败则本地）
   Future<List<ReviewEntry>> fetchAll() async {
+    // 确保ApiClient已初始化
+    await _api.init();
+
     if (_api.isAuthenticated) {
       try {
         // 从服务器获取
@@ -78,6 +81,7 @@ class ReviewRepository {
     await _store.writeList(_storageKey, entries, (entry) => entry.toJson());
 
     // 2. 同步到服务器（如果已登录）
+    await _api.init();
     if (_api.isAuthenticated) {
       try {
         await _api.post('/reviews', data: {
@@ -108,6 +112,7 @@ class ReviewRepository {
     await _store.writeList(_storageKey, entries, (entry) => entry.toJson());
 
     // 2. 从服务器删除（如果已登录）
+    await _api.init();
     if (_api.isAuthenticated) {
       try {
         await _api.delete('/reviews/$id');

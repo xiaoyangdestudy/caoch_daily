@@ -8,6 +8,8 @@ class ApiClient {
   String? _token;
   String? _userId;
 
+  bool _isInitialized = false;
+
   ApiClient({required this.baseUrl}) {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
@@ -34,9 +36,14 @@ class ApiClient {
         return handler.next(error);
       },
     ));
+  }
 
-    // 从本地加载token
-    _loadToken();
+  /// 初始化 - 加载本地token
+  Future<void> init() async {
+    if (!_isInitialized) {
+      await _loadToken();
+      _isInitialized = true;
+    }
   }
 
   /// 从SharedPreferences加载token

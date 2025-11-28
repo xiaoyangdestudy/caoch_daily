@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
 import '../../../shared/providers/api_provider.dart';
-import '../../auth/presentation/auth_page.dart';
+import '../../../shared/providers/preferences_provider.dart';
+import '../../../app/router/app_routes.dart';
 import '../../review/application/review_providers.dart';
 import '../application/profile_provider.dart';
 import '../domain/profile_model.dart';
@@ -921,17 +923,18 @@ class _DataSyncSection extends ConsumerWidget {
 
   // 处理登录/注册
   Future<void> _handleAuth(BuildContext context, WidgetRef ref) async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (context) => const AuthPage()),
-    );
+    final result = await context.push<bool>(AppRoutes.login);
 
     if (result == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('登录成功！')),
       );
 
-      // 刷新用户名显示
+      // 刷新所有相关Provider
+      ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
+      ref.invalidate(reviewRepositoryProvider);
+      ref.invalidate(reviewEntriesProvider);
     }
   }
 
@@ -999,7 +1002,7 @@ class _DataSyncSection extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('确认退出登录'),
-        content: const Text('退出后本地数据会保留，但不再同步到云端。'),
+        content: const Text('退出后将清除本地数据，重新登录时会从云端同步。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -1015,12 +1018,35 @@ class _DataSyncSection extends ConsumerWidget {
 
     if (confirmed == true) {
       final api = ref.read(apiClientProvider);
+
+      // 清除本地数据
+      try {
+        // 清空review数据（通过保存空列表）
+        final localStore = ref.read(localStoreProvider);
+        await localStore.writeList('review_entries', [], (e) => {});
+        print('✓ 已清除本地Review数据');
+
+        // TODO: 清除其他模块的数据
+        // await localStore.clear('workout_data');
+        // await localStore.clear('meal_data');
+        // await localStore.clear('sleep_data');
+      } catch (e) {
+        print('⚠️ 清除本地数据失败: $e');
+      }
+
+      // 退出登录
       await api.logout();
 
-      // 刷新用户名显示
+      // 刷新认证状态和所有数据Provider
+      ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
+      ref.invalidate(reviewRepositoryProvider);
+      ref.invalidate(reviewEntriesProvider);
 
       if (context.mounted) {
+        // 跳转到登录页
+        context.go(AppRoutes.login);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('已退出登录')),
         );

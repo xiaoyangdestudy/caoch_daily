@@ -26,21 +26,18 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   );
 });
 
-/// 认证状态Provider
+/// 认证状态Provider（异步初始化）
 ///
-/// 用于监听用户登录状态
-final authStateProvider = StreamProvider<bool>((ref) async* {
+/// 等待ApiClient初始化完成后返回认证状态
+final authStateProvider = FutureProvider<bool>((ref) async {
   final api = ref.watch(apiClientProvider);
-
-  // 初始状态
-  yield api.isAuthenticated;
-
-  // 这里可以添加实时监听逻辑
-  // 例如：每隔一段时间检查token是否过期
+  await api.init(); // 等待token加载完成
+  return api.isAuthenticated;
 });
 
 /// 当前用户名Provider
 final currentUsernameProvider = FutureProvider<String?>((ref) async {
   final api = ref.watch(apiClientProvider);
+  await api.init(); // 确保已初始化
   return await api.getUsername();
 });
