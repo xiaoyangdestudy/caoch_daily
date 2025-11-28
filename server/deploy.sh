@@ -14,7 +14,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # 项目路径
-PROJECT_DIR="$HOME/coach-daily"
+PROJECT_DIR="$HOME/caoch_daily"
 SERVER_DIR="$PROJECT_DIR/server"
 
 echo -e "${GREEN}========================================"
