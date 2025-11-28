@@ -1,0 +1,196 @@
+### Coach Daily API 测试文件
+### 使用 VS Code 的 REST Client 扩展来运行这些请求
+
+### 环境变量
+# 本地环境
+@baseUrl = http://localhost:3000
+# 生产环境（根据你的服务器IP修改）
+# @baseUrl = http://your-server-ip:3000
+
+@username = testuser
+@password = test123456
+
+### ========================================
+### 1. 健康检查
+### ========================================
+
+GET {{baseUrl}}/health HTTP/1.1
+
+### 获取API信息
+GET {{baseUrl}}/ HTTP/1.1
+
+### ========================================
+### 2. 认证接口测试
+### ========================================
+
+### 注册用户
+# @name register
+POST {{baseUrl}}/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 登录获取 Token
+# @name login
+POST {{baseUrl}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 提取 token
+@token = {{login.response.body.token}}
+
+### ========================================
+### 3. 回顾记录接口测试
+### ========================================
+
+### 获取所有回顾记录
+GET {{baseUrl}}/api/reviews HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 创建回顾记录
+POST {{baseUrl}}/api/reviews HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2025-11-28",
+  "mood": 4,
+  "energy": 5,
+  "gratitude": "今天完成了项目部署",
+  "improvements": "需要优化API性能",
+  "tomorrow": "添加更多测试用例"
+}
+
+### ========================================
+### 4. 健身记录接口测试
+### ========================================
+
+### 获取健身记录
+GET {{baseUrl}}/api/workouts HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 创建健身记录
+POST {{baseUrl}}/api/workouts HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2025-11-28",
+  "type": "跑步",
+  "duration": 30,
+  "intensity": "中等",
+  "notes": "晨跑5公里"
+}
+
+### ========================================
+### 5. 饮食记录接口测试
+### ========================================
+
+### 获取饮食记录
+GET {{baseUrl}}/api/meals HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 创建饮食记录
+POST {{baseUrl}}/api/meals HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2025-11-28",
+  "mealType": "早餐",
+  "foods": "燕麦片、牛奶、水果",
+  "calories": 450,
+  "water": 2,
+  "notes": "健康营养的早餐"
+}
+
+### ========================================
+### 6. 睡眠记录接口测试
+### ========================================
+
+### 获取睡眠记录
+GET {{baseUrl}}/api/sleep HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 创建睡眠记录
+POST {{baseUrl}}/api/sleep HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2025-11-28",
+  "bedTime": "23:00",
+  "wakeTime": "07:00",
+  "quality": 4,
+  "notes": "睡眠质量不错"
+}
+
+### ========================================
+### 7. 专注记录接口测试
+### ========================================
+
+### 获取专注记录
+GET {{baseUrl}}/api/focus HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 创建专注记录
+POST {{baseUrl}}/api/focus HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2025-11-28",
+  "sessions": 3,
+  "totalMinutes": 90,
+  "task": "API开发",
+  "notes": "使用番茄工作法"
+}
+
+### ========================================
+### 8. 同步接口测试
+### ========================================
+
+### 批量同步数据
+POST {{baseUrl}}/api/sync/batch HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "workouts": [
+    {
+      "date": "2025-11-27",
+      "type": "力量训练",
+      "duration": 45,
+      "intensity": "高",
+      "notes": "胸部训练"
+    }
+  ],
+  "meals": [
+    {
+      "date": "2025-11-27",
+      "mealType": "午餐",
+      "foods": "鸡胸肉、蔬菜沙拉",
+      "calories": 500,
+      "water": 3
+    }
+  ],
+  "sleep": [
+    {
+      "date": "2025-11-27",
+      "bedTime": "22:30",
+      "wakeTime": "06:30",
+      "quality": 5
+    }
+  ]
+}
+
+### 获取最后同步时间
+GET {{baseUrl}}/api/sync/last-sync HTTP/1.1
+Authorization: Bearer {{token}}
