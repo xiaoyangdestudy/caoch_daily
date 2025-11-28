@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../shared/services/api_client.dart';
 import '../domain/moment_model.dart';
@@ -9,6 +10,7 @@ const _momentsKey = 'moments_v1';
 class MomentsRepository {
   final SharedPreferences _prefs;
   final ApiClient _apiClient;
+  final _uuid = const Uuid();
 
   MomentsRepository(this._prefs, this._apiClient);
 
@@ -33,6 +35,8 @@ class MomentsRepository {
 
   /// 创建新动态
   Future<Moment> create(CreateMomentInput input) async {
+    Moment newMoment;
+
     try {
       // 1. 先上传图片（如果有）
       List<String> imageUrls = [];
@@ -48,33 +52,62 @@ class MomentsRepository {
         tags: input.tags,
       );
 
-      return Moment.fromJson(momentData);
+      newMoment = Moment.fromJson(momentData);
     } catch (e) {
-      // 如果API调用失败，抛出错误让UI层处理
-      rethrow;
+      // 如果API调用失败，创建本地动态（模拟模式）
+      final username = await _apiClient.getUsername() ?? '我';
+      newMoment = Moment(
+        id: _uuid.v4(),
+        userId: _uuid.v4(),
+        username: username,
+        content: input.content,
+        createdAt: DateTime.now(),
+        imageUrls: input.imagePaths, // 在本地模式下，直接使用本地路径
+        location: input.location,
+        tags: input.tags,
+      );
     }
+
+    // 保存到本地缓存
+    final localMoments = await _loadFromLocal();
+    localMoments.insert(0, newMoment);
+    await _saveToLocal(localMoments);
+
+    return newMoment;
   }
 
   /// 删除动态
   Future<void> delete(String id) async {
     try {
       await _apiClient.deleteMoment(id);
-      // 同时更新本地缓存
-      final moments = await _loadFromLocal();
-      moments.removeWhere((m) => m.id == id);
-      await _saveToLocal(moments);
     } catch (e) {
-      rethrow;
+      // 如果API调用失败，忽略错误（继续删除本地数据）
     }
+
+    // 更新本地缓存
+    final moments = await _loadFromLocal();
+    moments.removeWhere((m) => m.id == id);
+    await _saveToLocal(moments);
   }
 
   /// 点赞/取消点赞
   Future<void> toggleLike(String id) async {
+    // 先更新本地缓存（乐观更新）
+    final moments = await _loadFromLocal();
+    final index = moments.indexWhere((m) => m.id == id);
+    if (index != -1) {
+      final moment = moments[index];
+      moments[index] = moment.copyWith(
+        isLiked: !moment.isLiked,
+        likes: moment.isLiked ? moment.likes - 1 : moment.likes + 1,
+      );
+      await _saveToLocal(moments);
+    }
+
     try {
       await _apiClient.toggleLikeMoment(id);
-      // 更新本地缓存
-      final moments = await _loadFromLocal();
-      final index = moments.indexWhere((m) => m.id == id);
+    } catch (e) {
+      // 如果API调用失败，回滚本地更改
       if (index != -1) {
         final moment = moments[index];
         moments[index] = moment.copyWith(
@@ -83,7 +116,6 @@ class MomentsRepository {
         );
         await _saveToLocal(moments);
       }
-    } catch (e) {
       rethrow;
     }
   }

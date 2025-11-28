@@ -93,47 +93,7 @@ class ProfilePage extends ConsumerWidget {
                 child: _DataSyncSection(),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: _ProfileMenuSection(
-                  title: '隐私与支持',
-                  children: [
-                    _ProfileMenuItem(
-                      icon: Icons.privacy_tip_outlined,
-                      label: '隐私与数据',
-                      description: '导出 / 删除账号',
-                      onTap: () => _showSupportSheet(
-                        context,
-                        _SupportSheetType.privacy,
-                        version: state.version,
-                      ),
-                    ),
-                    _ProfileMenuItem(
-                      icon: Icons.chat_bubble_outline,
-                      label: '帮助与反馈',
-                      description: '联系教练团队',
-                      onTap: () => _showSupportSheet(
-                        context,
-                        _SupportSheetType.support,
-                        version: state.version,
-                      ),
-                    ),
-                    _ProfileMenuItem(
-                      icon: Icons.info_outline,
-                      label: '关于日常教练',
-                      description: '了解版本与开源协议',
-                      valueText: state.version,
-                      onTap: () => _showSupportSheet(
-                        context,
-                        _SupportSheetType.about,
-                        version: state.version,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),

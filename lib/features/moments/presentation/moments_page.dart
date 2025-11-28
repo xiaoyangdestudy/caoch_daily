@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -20,142 +23,151 @@ class MomentsPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '动态',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    FilledButton.icon(
-                      onPressed: () async {
-                        final result = await context.push(AppRoutes.createMoment);
-                        if (result == true) {
-                          ref.read(momentsProvider.notifier).refresh();
-                        }
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.candyBlue,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(momentsProvider.notifier).refresh();
+          },
+          color: AppColors.candyBlue,
+          child: CustomScrollView(
+            slivers: [
+              // Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '动态',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black87,
                         ),
                       ),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text(
-                        '发布',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Content
-            momentsAsync.when(
-              data: (moments) {
-                if (moments.isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: AppShadows.cardSoft,
-                            ),
-                            child: Icon(
-                              Icons.photo_library_outlined,
-                              size: 48,
-                              color: AppColors.candyBlue.withAlpha(128),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            '还没有动态',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '分享你的生活瞬间，记录美好时刻',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                // 瀑布流布局
-                return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                  sliver: SliverMasonryGrid.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childCount: moments.length,
-                    itemBuilder: (context, index) {
-                      return _MomentCard(moment: moments[index]);
-                    },
-                  ),
-                );
-              },
-              loading: () => const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stack) => SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '加载失败: ${error.toString()}',
-                        style: TextStyle(color: Colors.grey.shade600),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          ref.read(momentsProvider.notifier).refresh();
+                      FilledButton.icon(
+                        onPressed: () async {
+                          final result = await context.push(AppRoutes.createMoment);
+                          if (result == true) {
+                            ref.read(momentsProvider.notifier).refresh();
+                          }
                         },
-                        child: const Text('重试'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.candyBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text(
+                          '发布',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
-          ],
+
+              // Content
+              momentsAsync.when(
+                data: (moments) {
+                  if (moments.isEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: AppShadows.cardSoft,
+                              ),
+                              child: Icon(
+                                Icons.photo_library_outlined,
+                                size: 48,
+                                color: AppColors.candyBlue.withAlpha(128),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              '还没有动态',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '分享你的生活瞬间，记录美好时刻',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  // 瀑布流布局
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                    sliver: SliverMasonryGrid.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childCount: moments.length,
+                      itemBuilder: (context, index) {
+                        return _MomentCard(moment: moments[index]);
+                      },
+                    ),
+                  );
+                },
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stack) => SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            '加载失败: ${error.toString()}',
+                            style: TextStyle(color: Colors.grey.shade600),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            ref.read(momentsProvider.notifier).refresh();
+                          },
+                          child: const Text('重试'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -441,6 +453,92 @@ class _ImageSection extends StatelessWidget {
 
   final List<String> imageUrls;
 
+  /// 检查是否是本地文件路径
+  bool _isLocalPath(String path) {
+    return !path.startsWith('http://') && !path.startsWith('https://');
+  }
+
+  /// 构建单个图片组件
+  Widget _buildImage(String imagePath, {double? height}) {
+    if (_isLocalPath(imagePath)) {
+      // 本地文件
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: height,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: height ?? 180,
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: Icon(Icons.broken_image, color: Colors.grey, size: 32),
+          ),
+        ),
+      );
+    } else {
+      // 网络图片
+      return CachedNetworkImage(
+        imageUrl: imagePath,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: height,
+        placeholder: (context, url) => Container(
+          height: height ?? 180,
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          height: height ?? 180,
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: Icon(Icons.broken_image, color: Colors.grey, size: 32),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// 构建网格图片组件
+  Widget _buildGridImage(String imagePath) {
+    if (_isLocalPath(imagePath)) {
+      // 本地文件
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 20, color: Colors.grey),
+          ),
+        ),
+      );
+    } else {
+      // 网络图片
+      return CachedNetworkImage(
+        imageUrl: imagePath,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 20, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (imageUrls.isEmpty) return const SizedBox.shrink();
@@ -449,18 +547,7 @@ class _ImageSection extends StatelessWidget {
     if (imageUrls.length == 1) {
       return ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        child: Image.network(
-          imageUrls.first,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          errorBuilder: (context, error, stackTrace) => Container(
-            height: 180,
-            color: Colors.grey.shade100,
-            child: const Center(
-              child: Icon(Icons.broken_image, color: Colors.grey, size: 32),
-            ),
-          ),
-        ),
+        child: _buildImage(imageUrls.first, height: 180),
       );
     }
 
@@ -478,16 +565,7 @@ class _ImageSection extends StatelessWidget {
         ),
         itemCount: imageUrls.length > 9 ? 9 : imageUrls.length,
         itemBuilder: (context, index) {
-          return Image.network(
-            imageUrls[index],
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: Colors.grey.shade100,
-              child: const Center(
-                child: Icon(Icons.broken_image, size: 20, color: Colors.grey),
-              ),
-            ),
-          );
+          return _buildGridImage(imageUrls[index]);
         },
       ),
     );
