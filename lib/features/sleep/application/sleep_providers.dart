@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../shared/providers/preferences_provider.dart';
+import '../../../shared/providers/api_provider.dart';
 import '../data/sleep_repository.dart';
 import '../domain/sleep_record.dart';
 
 final sleepRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
-  return SleepRepository(store);
+  final api = ref.watch(apiClientProvider);
+  return SleepRepository(store, api);
 });
 
 final sleepRecordsProvider =

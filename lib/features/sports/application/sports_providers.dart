@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/preferences_provider.dart';
+import '../../../shared/providers/api_provider.dart';
 import '../data/workout_repository.dart';
 import '../domain/workout_record.dart';
 
 final workoutRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
-  return WorkoutRepository(store);
+  final api = ref.watch(apiClientProvider);
+  return WorkoutRepository(store, api);
 });
 
 final workoutListProvider =

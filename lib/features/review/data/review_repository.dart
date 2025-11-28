@@ -8,19 +8,31 @@ import '../domain/review_record.dart';
 /// - 优先从服务器获取数据（如果已登录）
 /// - 服务器失败时使用本地数据
 /// - 保存时同时保存到本地和服务器
+/// - 不同用户的数据使用不同的本地存储key，实现数据隔离
 class ReviewRepository {
   ReviewRepository(this._store, this._api);
 
   final LocalStore _store;
   final ApiClient _api;
 
-  static const _storageKey = 'review_entries';
+  static const _storageKeyPrefix = 'review_entries';
+
+  /// 获取当前用户的存储key
+  Future<String> _getStorageKey() async {
+    final username = await _api.getUsername();
+    if (username != null && username.isNotEmpty) {
+      return '${_storageKeyPrefix}_$username';
+    }
+    // 未登录时使用通用key
+    return _storageKeyPrefix;
+  }
 
   // ==================== 获取数据 ====================
 
   /// 从本地获取所有记录
   Future<List<ReviewEntry>> fetchLocal() async {
-    final entries = _store.readList(_storageKey, ReviewEntry.fromJson);
+    final storageKey = await _getStorageKey();
+    final entries = _store.readList(storageKey, ReviewEntry.fromJson);
     entries.sort((a, b) => b.date.compareTo(a.date));
     return entries;
   }
@@ -51,8 +63,9 @@ class ReviewRepository {
         // 从服务器获取
         final serverEntries = await fetchFromServer();
 
-        // 缓存到本地
-        await _store.writeList(_storageKey, serverEntries, (e) => e.toJson());
+        // 缓存到本地（使用当前用户的key）
+        final storageKey = await _getStorageKey();
+        await _store.writeList(storageKey, serverEntries, (e) => e.toJson());
 
         return serverEntries;
       } catch (e) {
@@ -70,6 +83,8 @@ class ReviewRepository {
 
   /// 保存记录（本地+服务器）
   Future<void> save(ReviewEntry entry) async {
+    final storageKey = await _getStorageKey();
+
     // 1. 先保存到本地（确保离线也能用）
     final entries = await fetchLocal();
     final index = entries.indexWhere((element) => element.id == entry.id);
@@ -78,7 +93,7 @@ class ReviewRepository {
     } else {
       entries.insert(0, entry);
     }
-    await _store.writeList(_storageKey, entries, (entry) => entry.toJson());
+    await _store.writeList(storageKey, entries, (entry) => entry.toJson());
 
     // 2. 同步到服务器（如果已登录）
     await _api.init();
@@ -106,10 +121,12 @@ class ReviewRepository {
 
   /// 删除记录（本地+服务器）
   Future<void> delete(String id) async {
+    final storageKey = await _getStorageKey();
+
     // 1. 从本地删除
     final entries = await fetchLocal();
     entries.removeWhere((element) => element.id == id);
-    await _store.writeList(_storageKey, entries, (entry) => entry.toJson());
+    await _store.writeList(storageKey, entries, (entry) => entry.toJson());
 
     // 2. 从服务器删除（如果已登录）
     await _api.init();
@@ -181,9 +198,10 @@ class ReviewRepository {
     }
 
     final serverEntries = await fetchFromServer();
+    final storageKey = await _getStorageKey();
 
-    // 保存到本地
-    await _store.writeList(_storageKey, serverEntries, (e) => e.toJson());
+    // 保存到本地（使用当前用户的key）
+    await _store.writeList(storageKey, serverEntries, (e) => e.toJson());
 
     print('✓ 已从服务器下载 ${serverEntries.length} 条记录');
   }

@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../shared/providers/preferences_provider.dart';
+import '../../../shared/providers/api_provider.dart';
 import '../data/diet_repository.dart';
 import '../domain/diet_models.dart';
 
 final dietRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
-  return DietRepository(store);
+  final api = ref.watch(apiClientProvider);
+  return DietRepository(store, api);
 });
 
 final dietRecordsProvider =

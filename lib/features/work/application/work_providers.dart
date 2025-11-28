@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../shared/providers/preferences_provider.dart';
+import '../../../shared/providers/api_provider.dart';
 import '../data/focus_repository.dart';
 import '../domain/focus_session.dart';
 
 final focusRepositoryProvider = Provider((ref) {
   final store = ref.watch(localStoreProvider);
-  return FocusRepository(store);
+  final api = ref.watch(apiClientProvider);
+  return FocusRepository(store, api);
 });
 
 final focusSessionsProvider =
