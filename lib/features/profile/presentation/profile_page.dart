@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
 import '../../../shared/providers/api_provider.dart';
-import '../../../shared/providers/preferences_provider.dart';
 import '../../../app/router/app_routes.dart';
 import '../../review/application/review_providers.dart';
 import '../../sports/application/sports_providers.dart';
@@ -180,32 +179,6 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Future<void> _openEditSheet(
-    BuildContext context,
-    WidgetRef ref,
-    ProfileState state,
-  ) async {
-    final result = await showModalBottomSheet<_ProfileEditResult>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _ProfileEditSheet(
-        initialName: state.overview.nickname,
-        initialEncourage: state.overview.encourageText,
-        initialEmoji: state.overview.emoji,
-      ),
-    );
-    if (result != null) {
-      ref
-          .read(profileProvider.notifier)
-          .updateProfile(
-            nickname: result.nickname,
-            encourageText: result.encourageText,
-            emoji: result.emoji,
-          );
-    }
-  }
-
   Future<void> _showAiStyleSheet(
     BuildContext context,
     WidgetRef ref,
@@ -375,7 +348,7 @@ class _ProfileHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(24),
             boxShadow: AppShadows.cardSoft,
             border: Border.all(color: Colors.white),
@@ -410,7 +383,7 @@ class _ProfileHeader extends StatelessWidget {
                 onPressed: onTimeline,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.black87,
-                  backgroundColor: Colors.white.withOpacity(0.5),
+                  backgroundColor: Colors.white.withValues(alpha: 0.5),
                   side: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -515,7 +488,7 @@ class _ProfileMenuSection extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(color: Colors.white),
             boxShadow: AppShadows.cardSoft,
