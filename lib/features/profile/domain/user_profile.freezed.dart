@@ -27,6 +27,7 @@ mixin _$UserProfile {
   String? get avatar => throw _privateConstructorUsedError;
   String? get signature => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   String get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this UserProfile to a JSON map.
@@ -53,7 +54,7 @@ abstract class $UserProfileCopyWith<$Res> {
     String? avatar,
     String? signature,
     String? email,
-    String createdAt,
+    @JsonKey(name: 'created_at') String createdAt,
   });
 }
 
@@ -132,7 +133,7 @@ abstract class _$$UserProfileImplCopyWith<$Res>
     String? avatar,
     String? signature,
     String? email,
-    String createdAt,
+    @JsonKey(name: 'created_at') String createdAt,
   });
 }
 
@@ -203,7 +204,7 @@ class _$UserProfileImpl implements _UserProfile {
     this.avatar,
     this.signature,
     this.email,
-    required this.createdAt,
+    @JsonKey(name: 'created_at') required this.createdAt,
   });
 
   factory _$UserProfileImpl.fromJson(Map<String, dynamic> json) =>
@@ -222,6 +223,7 @@ class _$UserProfileImpl implements _UserProfile {
   @override
   final String? email;
   @override
+  @JsonKey(name: 'created_at')
   final String createdAt;
 
   @override
@@ -282,7 +284,7 @@ abstract class _UserProfile implements UserProfile {
     final String? avatar,
     final String? signature,
     final String? email,
-    required final String createdAt,
+    @JsonKey(name: 'created_at') required final String createdAt,
   }) = _$UserProfileImpl;
 
   factory _UserProfile.fromJson(Map<String, dynamic> json) =
@@ -301,6 +303,7 @@ abstract class _UserProfile implements UserProfile {
   @override
   String? get email;
   @override
+  @JsonKey(name: 'created_at')
   String get createdAt;
 
   /// Create a copy of UserProfile

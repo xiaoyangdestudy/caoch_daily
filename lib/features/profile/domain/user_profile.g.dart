@@ -14,7 +14,7 @@ _$UserProfileImpl _$$UserProfileImplFromJson(Map<String, dynamic> json) =>
       avatar: json['avatar'] as String?,
       signature: json['signature'] as String?,
       email: json['email'] as String?,
-      createdAt: json['createdAt'] as String,
+      createdAt: json['created_at'] as String,
     );
 
 Map<String, dynamic> _$$UserProfileImplToJson(_$UserProfileImpl instance) =>
@@ -25,7 +25,7 @@ Map<String, dynamic> _$$UserProfileImplToJson(_$UserProfileImpl instance) =>
       'avatar': instance.avatar,
       'signature': instance.signature,
       'email': instance.email,
-      'createdAt': instance.createdAt,
+      'created_at': instance.createdAt,
     };
 
 _$UpdateProfileRequestImpl _$$UpdateProfileRequestImplFromJson(

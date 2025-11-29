@@ -13,7 +13,7 @@ class UserProfile with _$UserProfile {
     String? avatar,
     String? signature,
     String? email,
-    required String createdAt,
+    @JsonKey(name: 'created_at') required String createdAt,
   }) = _UserProfile;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) =>
