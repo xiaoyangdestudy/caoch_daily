@@ -4,32 +4,53 @@ import 'package:flutter/material.dart';
 class AppColors {
   const AppColors._();
 
-  static const candyPink = Color(0xFFFF5E9F);
-  static const candyPinkDark = Color(0xFFD63D7B);
-  static const candyPurple = Color(0xFF9D00FF);
-  static const candyPurpleDark = Color(0xFF7A00C7);
-  static const candyBlue = Color(0xFF2EC4B6);
-  static const candyBlueDark = Color(0xFF1E9E92);
-  static const candyGreen = Color(0xFF4EFF85);
-  static const candyGreenDark = Color(0xFF2DDB63);
-  static const candyLime = Color(0xFFD4FF00);
-  static const candyLimeDark = Color(0xFFA6C700);
-  static const candyYellow = Color(0xFFFFD600);
-  static const candyYellowDark = Color(0xFFD1AF00);
-  static const candyOrange = Color(0xFFFF9F1C);
-  static const candyOrangeDark = Color(0xFFD67D00);
-  static const candyMint = Color(0xFF00F5D4);
-  static const surface = Color(0xFFF0F4F8);
+  // Candy Colors (Light Mode)
+  static const candyPink = Color(0xFFFFC0CB);
+  static const candyOrange = Color(0xFFFFB347);
+  static const candyBlue = Color(0xFF87CEEB);
+  static const candyPurple = Color(0xFFE0B0FF);
+  static const candyGreen = Color(0xFF98FF98);
+  static const candyYellow = Color(0xFFFFEB99);
 
-  static const meshGradient = LinearGradient(
+  // Backgrounds
+  static const background = Color(0xFF0F172A); // Deep Dark Blue/Grey
+  static const backgroundDark = Color(0xFF020617); // Almost Black
+  static const surface = Color(0xFF1E293B); // Lighter Dark Blue/Grey
+  static const surfaceLight = Color(0xFF334155); // Even Lighter
+
+  // Neon Accents
+  static const neonGreen = Color(0xFF00FF94);
+  static const neonBlue = Color(0xFF00E5FF);
+  static const neonPurple = Color(0xFFBD00FF);
+  static const neonPink = Color(0xFFFF0055);
+  static const neonOrange = Color(0xFFFF9100);
+
+  // Text
+  static const textPrimary = Color(0xFFF8FAFC);
+  static const textSecondary = Color(0xFF94A3B8);
+  static const textTertiary = Color(0xFF64748B);
+
+  // Functional
+  static const error = Color(0xFFFF453A);
+  static const success = Color(0xFF00FF94);
+  static const warning = Color(0xFFFF9100);
+
+  // Gradients
+  static const primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFFF9A9E),
-      Color(0xFFFECFEF),
-      Color(0xFFE0C3FC),
-      Color(0xFFA1C4FD),
-      Color(0xFFC2E9FB),
-    ],
+    colors: [neonBlue, neonPurple],
+  );
+
+  static const secondaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [neonGreen, neonBlue],
+  );
+
+  static const fireGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [neonOrange, neonPink],
   );
 }

@@ -17,31 +17,58 @@ class MeshBackground extends StatelessWidget {
           children: [
             const Positioned.fill(
               child: DecoratedBox(
-                decoration: BoxDecoration(gradient: AppColors.meshGradient),
-              ),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.85),
-                      ),
-                      child: child,
-                    ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.backgroundDark,
+                      AppColors.background,
+                    ],
                   ),
                 ),
               ),
             ),
+            // Background Glows
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.neonBlue.withOpacity(0.15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonBlue.withOpacity(0.15),
+                      blurRadius: 100,
+                      spreadRadius: 50,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -100,
+              left: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.neonPurple.withOpacity(0.15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonPurple.withOpacity(0.15),
+                      blurRadius: 100,
+                      spreadRadius: 50,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SafeArea(child: child),
           ],
         );
       },

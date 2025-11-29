@@ -10,6 +10,9 @@ class ApiClient {
 
   bool _isInitialized = false;
 
+  /// 获取 Dio 实例（用于直接访问）
+  Dio get dio => _dio;
+
   ApiClient({required this.baseUrl}) {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,

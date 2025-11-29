@@ -15,10 +15,6 @@ final _privateConstructorUsedError = UnsupportedError(
   'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
 );
 
-UserProfile _$UserProfileFromJson(Map<String, dynamic> json) {
-  return _UserProfile.fromJson(json);
-}
-
 /// @nodoc
 mixin _$UserProfile {
   String get id => throw _privateConstructorUsedError;
@@ -27,11 +23,7 @@ mixin _$UserProfile {
   String? get avatar => throw _privateConstructorUsedError;
   String? get signature => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
-  String get createdAt => throw _privateConstructorUsedError;
-
-  /// Serializes this UserProfile to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
 
   /// Create a copy of UserProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -54,7 +46,7 @@ abstract class $UserProfileCopyWith<$Res> {
     String? avatar,
     String? signature,
     String? email,
-    @JsonKey(name: 'created_at') String createdAt,
+    String? createdAt,
   });
 }
 
@@ -79,7 +71,7 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? avatar = freezed,
     Object? signature = freezed,
     Object? email = freezed,
-    Object? createdAt = null,
+    Object? createdAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -107,10 +99,10 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
                       as String?,
-            createdAt: null == createdAt
+            createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
           )
           as $Val,
     );
@@ -133,7 +125,7 @@ abstract class _$$UserProfileImplCopyWith<$Res>
     String? avatar,
     String? signature,
     String? email,
-    @JsonKey(name: 'created_at') String createdAt,
+    String? createdAt,
   });
 }
 
@@ -157,7 +149,7 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? avatar = freezed,
     Object? signature = freezed,
     Object? email = freezed,
-    Object? createdAt = null,
+    Object? createdAt = freezed,
   }) {
     return _then(
       _$UserProfileImpl(
@@ -185,18 +177,18 @@ class __$$UserProfileImplCopyWithImpl<$Res>
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
                   as String?,
-        createdAt: null == createdAt
+        createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
       ),
     );
   }
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$UserProfileImpl implements _UserProfile {
+
+class _$UserProfileImpl extends _UserProfile {
   const _$UserProfileImpl({
     required this.id,
     required this.username,
@@ -204,11 +196,8 @@ class _$UserProfileImpl implements _UserProfile {
     this.avatar,
     this.signature,
     this.email,
-    @JsonKey(name: 'created_at') required this.createdAt,
-  });
-
-  factory _$UserProfileImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UserProfileImplFromJson(json);
+    this.createdAt,
+  }) : super._();
 
   @override
   final String id;
@@ -223,8 +212,7 @@ class _$UserProfileImpl implements _UserProfile {
   @override
   final String? email;
   @override
-  @JsonKey(name: 'created_at')
-  final String createdAt;
+  final String? createdAt;
 
   @override
   String toString() {
@@ -249,7 +237,6 @@ class _$UserProfileImpl implements _UserProfile {
                 other.createdAt == createdAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
     runtimeType,
@@ -269,14 +256,9 @@ class _$UserProfileImpl implements _UserProfile {
   @pragma('vm:prefer-inline')
   _$$UserProfileImplCopyWith<_$UserProfileImpl> get copyWith =>
       __$$UserProfileImplCopyWithImpl<_$UserProfileImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$UserProfileImplToJson(this);
-  }
 }
 
-abstract class _UserProfile implements UserProfile {
+abstract class _UserProfile extends UserProfile {
   const factory _UserProfile({
     required final String id,
     required final String username,
@@ -284,11 +266,9 @@ abstract class _UserProfile implements UserProfile {
     final String? avatar,
     final String? signature,
     final String? email,
-    @JsonKey(name: 'created_at') required final String createdAt,
+    final String? createdAt,
   }) = _$UserProfileImpl;
-
-  factory _UserProfile.fromJson(Map<String, dynamic> json) =
-      _$UserProfileImpl.fromJson;
+  const _UserProfile._() : super._();
 
   @override
   String get id;
@@ -303,8 +283,7 @@ abstract class _UserProfile implements UserProfile {
   @override
   String? get email;
   @override
-  @JsonKey(name: 'created_at')
-  String get createdAt;
+  String? get createdAt;
 
   /// Create a copy of UserProfile
   /// with the given fields replaced by the non-null parameter values.

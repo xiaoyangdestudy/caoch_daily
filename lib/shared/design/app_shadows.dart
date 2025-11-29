@@ -3,41 +3,42 @@ import 'package:flutter/material.dart';
 class AppShadows {
   const AppShadows._();
 
-  static List<BoxShadow> pink3d = const [
-    BoxShadow(color: Color(0xFFD63D7B), offset: Offset(0, 6), blurRadius: 0),
-    BoxShadow(color: Color(0x4CFF5E9F), offset: Offset(0, 12), blurRadius: 16),
+  static List<BoxShadow> neonGreenGlow = [
+    BoxShadow(color: const Color(0xFF00FF94).withOpacity(0.6), blurRadius: 20, spreadRadius: -5),
+    BoxShadow(color: const Color(0xFF00FF94).withOpacity(0.3), blurRadius: 40, spreadRadius: 0),
   ];
 
-  static List<BoxShadow> yellow3d = const [
-    BoxShadow(color: Color(0xFFD67D00), offset: Offset(0, 6), blurRadius: 0),
-    BoxShadow(color: Color(0x4CFF9F1C), offset: Offset(0, 12), blurRadius: 16),
+  static List<BoxShadow> neonBlueGlow = [
+    BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.6), blurRadius: 20, spreadRadius: -5),
+    BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.3), blurRadius: 40, spreadRadius: 0),
   ];
 
-  static List<BoxShadow> green3d = const [
-    BoxShadow(color: Color(0xFF2DDB63), offset: Offset(0, 6), blurRadius: 0),
-    BoxShadow(color: Color(0x4C4EFF85), offset: Offset(0, 12), blurRadius: 16),
+  static List<BoxShadow> neonPurpleGlow = [
+    BoxShadow(color: const Color(0xFFBD00FF).withOpacity(0.6), blurRadius: 20, spreadRadius: -5),
+    BoxShadow(color: const Color(0xFFBD00FF).withOpacity(0.3), blurRadius: 40, spreadRadius: 0),
   ];
 
-  static List<BoxShadow> blue3d = const [
-    BoxShadow(color: Color(0xFF1E9E92), offset: Offset(0, 6), blurRadius: 0),
-    BoxShadow(color: Color(0x4C2EC4B6), offset: Offset(0, 12), blurRadius: 16),
+  static List<BoxShadow> neonPinkGlow = [
+    BoxShadow(color: const Color(0xFFFF0055).withOpacity(0.6), blurRadius: 20, spreadRadius: -5),
+    BoxShadow(color: const Color(0xFFFF0055).withOpacity(0.3), blurRadius: 40, spreadRadius: 0),
   ];
 
-  static List<BoxShadow> purple3d = const [
-    BoxShadow(color: Color(0xFF7A00C7), offset: Offset(0, 6), blurRadius: 0),
-    BoxShadow(color: Color(0x4C9D00FF), offset: Offset(0, 12), blurRadius: 16),
+  static List<BoxShadow> cardShadow = [
+    BoxShadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, 10), blurRadius: 20),
   ];
 
-  static List<BoxShadow> white3d = const [
-    BoxShadow(color: Color(0xFFE2E8F0), offset: Offset(0, 4), blurRadius: 0),
-    BoxShadow(color: Color(0x14000000), offset: Offset(0, 8), blurRadius: 16),
+  static List<BoxShadow> cardSoft = [
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.05), offset: const Offset(0, 1), blurRadius: 4, spreadRadius: 0),
   ];
 
-  static List<BoxShadow> cardSoft = const [
-    BoxShadow(color: Color(0x1A64646F), offset: Offset(0, 12), blurRadius: 30),
+  static List<BoxShadow> purple3d = [
+    BoxShadow(color: const Color(0xFFBD00FF).withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
   ];
-  static List<BoxShadow> orange3d = const [
-    BoxShadow(color: Color(0xFFD67D00), offset: Offset(0, 6), blurRadius: 0),
-    BoxShadow(color: Color(0x4CFF9F1C), offset: Offset(0, 12), blurRadius: 16),
+
+  static List<BoxShadow> innerShadow = [
+     BoxShadow(color: Colors.white.withOpacity(0.05), offset: const Offset(-1, -1), blurRadius: 2),
+     BoxShadow(color: Colors.black.withOpacity(0.5), offset: const Offset(1, 1), blurRadius: 2),
   ];
 }

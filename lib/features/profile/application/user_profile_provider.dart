@@ -5,29 +5,34 @@ import '../domain/user_profile.dart';
 
 /// 用户资料Provider - 获取和管理用户资料
 final userProfileProvider =
-    StateNotifierProvider<UserProfileNotifier, AsyncValue<UserProfile?>>((ref) {
-  final repository = ref.watch(userProfileRepositoryProvider);
-  return UserProfileNotifier(repository);
-});
+    AsyncNotifierProvider<UserProfileNotifier, UserProfile?>(
+  UserProfileNotifier.new,
+);
 
 /// 用户资料Notifier - 管理用户资料状态
-class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
-  UserProfileNotifier(this._repository) : super(const AsyncValue.data(null)) {
-    // 自动加载用户资料
-    loadProfile();
-  }
+class UserProfileNotifier extends AsyncNotifier<UserProfile?> {
+  late final UserProfileRepository _repository;
 
-  final UserProfileRepository _repository;
+  @override
+  Future<UserProfile?> build() async {
+    _repository = ref.watch(userProfileRepositoryProvider);
+    // Keep alive to prevent reloading when switching tabs
+    ref.keepAlive();
+
+    try {
+      return await _repository.getProfile();
+    } catch (e) {
+      // 如果获取失败，返回 null
+      return null;
+    }
+  }
 
   /// 加载用户资料
   Future<void> loadProfile() async {
     state = const AsyncValue.loading();
-    try {
-      final profile = await _repository.getProfile();
-      state = AsyncValue.data(profile);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
+    state = await AsyncValue.guard(() async {
+      return await _repository.getProfile();
+    });
   }
 
   /// 更新用户资料
@@ -38,20 +43,15 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
     String? email,
   }) async {
     state = const AsyncValue.loading();
-    try {
+    state = await AsyncValue.guard(() async {
       final request = UpdateProfileRequest(
         nickname: nickname,
         avatar: avatar,
         signature: signature,
         email: email,
       );
-      final updatedProfile = await _repository.updateProfile(request);
-      state = AsyncValue.data(updatedProfile);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-      // 重新加载当前数据以恢复状态
-      await loadProfile();
-    }
+      return await _repository.updateProfile(request);
+    });
   }
 
   /// 刷新用户资料
