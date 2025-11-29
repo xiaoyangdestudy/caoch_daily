@@ -17,10 +17,10 @@ npm run dev
 3. 测试API
 ```bash
 # 健康检查
-curl http://localhost:3000/health
+curl http://111.230.25.80:3000/health
 
 # 注册用户
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://111.230.25.80:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"test","password":"test123"}'
 ```

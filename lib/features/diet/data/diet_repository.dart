@@ -12,7 +12,6 @@ class DietRepository {
   final SharedPreferences _prefs;
 
   static const _storageKeyPrefix = 'diet_records';
-  static const String _cacheKey = 'diet_records_cache';
 
   /// 获取当前用户的存储key
   Future<String> _getStorageKey() async {
@@ -82,7 +81,7 @@ class DietRepository {
   Future<void> clear() async {
     final storageKey = await _getStorageKey();
     await _store.remove(storageKey);
-    await _prefs.remove(_cacheKey);
+    await _prefs.remove(storageKey);
   }
 
   /// 同步本地数据到服务器（批量上传）
@@ -104,7 +103,8 @@ class DietRepository {
   /// 从本地加载饮食记录
   Future<List<MealRecord>> _loadFromLocal() async {
     try {
-      final jsonString = _prefs.getString(_cacheKey);
+      final storageKey = await _getStorageKey();
+      final jsonString = _prefs.getString(storageKey);
       if (jsonString == null || jsonString.isEmpty) {
         return [];
       }
@@ -122,8 +122,9 @@ class DietRepository {
   /// 保存到本地
   Future<void> _saveToLocal(List<MealRecord> records) async {
     try {
+      final storageKey = await _getStorageKey();
       final jsonList = records.map((r) => r.toJson()).toList();
-      await _prefs.setString(_cacheKey, jsonEncode(jsonList));
+      await _prefs.setString(storageKey, jsonEncode(jsonList));
     } catch (e) {
       // 忽略本地保存错误
     }

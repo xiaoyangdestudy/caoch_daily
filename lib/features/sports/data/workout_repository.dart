@@ -12,7 +12,6 @@ class WorkoutRepository {
   final SharedPreferences _prefs;
 
   static const String _storageKeyPrefix = 'workout_records';
-  static const String _cacheKey = 'workout_records_cache';
 
   /// 获取当前用户的存储key
   Future<String> _getStorageKey() async {
@@ -94,7 +93,8 @@ class WorkoutRepository {
   /// 从本地加载运动记录
   Future<List<WorkoutRecord>> _loadFromLocal() async {
     try {
-      final jsonString = _prefs.getString(_cacheKey);
+      final storageKey = await _getStorageKey();
+      final jsonString = _prefs.getString(storageKey);
       if (jsonString == null || jsonString.isEmpty) {
         return [];
       }
@@ -112,8 +112,9 @@ class WorkoutRepository {
   /// 保存到本地
   Future<void> _saveToLocal(List<WorkoutRecord> records) async {
     try {
+      final storageKey = await _getStorageKey();
       final jsonList = records.map((r) => r.toJson()).toList();
-      await _prefs.setString(_cacheKey, jsonEncode(jsonList));
+      await _prefs.setString(storageKey, jsonEncode(jsonList));
     } catch (e) {
       // 忽略本地保存错误
     }

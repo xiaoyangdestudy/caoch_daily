@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,17 +10,25 @@ import '../../../shared/providers/api_provider.dart';
 import '../../../shared/providers/preferences_provider.dart';
 import '../../../app/router/app_routes.dart';
 import '../../review/application/review_providers.dart';
+import '../../sports/application/sports_providers.dart';
+import '../../diet/application/diet_providers.dart';
+import '../../sleep/application/sleep_providers.dart';
+import '../../work/application/work_providers.dart';
+import '../../moments/application/moments_provider.dart';
 import '../application/profile_provider.dart';
+import '../application/user_profile_provider.dart';
 import '../domain/profile_model.dart';
+import '../domain/user_profile.dart';
+import 'edit_profile_page.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(profileProvider);
     final notifier = ref.read(profileProvider.notifier);
+    final userProfileAsync = ref.watch(userProfileProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -37,16 +47,43 @@ class ProfilePage extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                  child: _ProfileHeader(
-                    overview: state.overview,
-                    onScan: () => _showFeatureComing(context),
-                    onSettings: () => _showSupportSheet(
-                      context,
-                      _SupportSheetType.about,
-                      version: state.version,
+                  child: userProfileAsync.when(
+                    data: (userProfile) => _ProfileHeader(
+                      overview: state.overview,
+                      userProfile: userProfile,
+                      onScan: () => _showFeatureComing(context),
+                      onSettings: () => _showSupportSheet(
+                        context,
+                        _SupportSheetType.about,
+                        version: state.version,
+                      ),
+                      onEdit: () => _navigateToEditProfile(context),
+                      onTimeline: () => _showFeatureComing(context),
                     ),
-                    onEdit: () => _openEditSheet(context, ref, state),
-                    onTimeline: () => _showFeatureComing(context),
+                    loading: () => _ProfileHeader(
+                      overview: state.overview,
+                      userProfile: null,
+                      onScan: () => _showFeatureComing(context),
+                      onSettings: () => _showSupportSheet(
+                        context,
+                        _SupportSheetType.about,
+                        version: state.version,
+                      ),
+                      onEdit: () => _navigateToEditProfile(context),
+                      onTimeline: () => _showFeatureComing(context),
+                    ),
+                    error: (_, __) => _ProfileHeader(
+                      overview: state.overview,
+                      userProfile: null,
+                      onScan: () => _showFeatureComing(context),
+                      onSettings: () => _showSupportSheet(
+                        context,
+                        _SupportSheetType.about,
+                        version: state.version,
+                      ),
+                      onEdit: () => _navigateToEditProfile(context),
+                      onTimeline: () => _showFeatureComing(context),
+                    ),
                   ),
                 ),
               ),
@@ -135,6 +172,14 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
+  Future<void> _navigateToEditProfile(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const EditProfilePage(),
+      ),
+    );
+  }
+
   Future<void> _openEditSheet(
     BuildContext context,
     WidgetRef ref,
@@ -200,6 +245,7 @@ class ProfilePage extends ConsumerWidget {
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.overview,
+    required this.userProfile,
     required this.onScan,
     required this.onSettings,
     required this.onEdit,
@@ -207,6 +253,7 @@ class _ProfileHeader extends StatelessWidget {
   });
 
   final ProfileOverview overview;
+  final UserProfile? userProfile;
   final VoidCallback onScan;
   final VoidCallback onSettings;
   final VoidCallback onEdit;
@@ -214,6 +261,10 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 优先使用用户资料中的昵称，否则使用默认昵称
+    final displayName = userProfile?.nickname ?? userProfile?.username ?? overview.nickname;
+    final signature = userProfile?.signature ?? overview.encourageText;
+
     return Column(
       children: [
         Row(
@@ -239,18 +290,32 @@ class _ProfileHeader extends StatelessWidget {
         const SizedBox(height: 24),
         Row(
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.candyPurple,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: AppShadows.purple3d,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                overview.emoji,
-                style: const TextStyle(fontSize: 40),
+            // 头像
+            GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.candyPurple,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: AppShadows.purple3d,
+                  image: userProfile?.avatar != null
+                      ? DecorationImage(
+                          image: MemoryImage(
+                            base64Decode(userProfile!.avatar!.split(',').last),
+                          ),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: userProfile?.avatar == null
+                    ? Text(
+                        overview.emoji,
+                        style: const TextStyle(fontSize: 40),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(width: 20),
@@ -258,22 +323,48 @@ class _ProfileHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    overview.nickname,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black87,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          displayName,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    overview.encourageText,
+                    signature,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.black.withValues(alpha: 0.5),
                       height: 1.4,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -971,7 +1062,7 @@ class _DataSyncSection extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('确认退出登录'),
-        content: const Text('退出后将清除本地数据，重新登录时会从云端同步。'),
+        content: const Text('退出后本地数据会保留，下次登录可快速恢复。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -988,29 +1079,19 @@ class _DataSyncSection extends ConsumerWidget {
     if (confirmed == true) {
       final api = ref.read(apiClientProvider);
 
-      // 清除本地数据
-      try {
-        // 清空review数据（通过保存空列表）
-        final localStore = ref.read(localStoreProvider);
-        await localStore.writeList('review_entries', [], (e) => {});
-        print('✓ 已清除本地Review数据');
-
-        // TODO: 清除其他模块的数据
-        // await localStore.clear('workout_data');
-        // await localStore.clear('meal_data');
-        // await localStore.clear('sleep_data');
-      } catch (e) {
-        print('⚠️ 清除本地数据失败: $e');
-      }
-
-      // 退出登录
+      // 退出登录（清除token和认证状态）
       await api.logout();
 
       // 刷新认证状态和所有数据Provider
+      // 注意：不清除本地数据，因为已有userId隔离，同一用户重新登录可快速恢复
       ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
-      ref.invalidate(reviewRepositoryProvider);
       ref.invalidate(reviewEntriesProvider);
+      ref.invalidate(workoutListProvider);
+      ref.invalidate(dietRecordsProvider);
+      ref.invalidate(sleepRecordsProvider);
+      ref.invalidate(focusSessionsProvider);
+      ref.invalidate(momentsProvider);
 
       if (context.mounted) {
         // 跳转到登录页

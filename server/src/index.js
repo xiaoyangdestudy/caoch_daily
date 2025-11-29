@@ -8,6 +8,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 // 导入路由
 const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profile');
 const reviewRoutes = require('./routes/reviews');
 const workoutRoutes = require('./routes/workouts');
 const mealRoutes = require('./routes/meals');
@@ -97,6 +98,7 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
+      profile: '/api/profile',
       reviews: '/api/reviews',
       workouts: '/api/workouts',
       meals: '/api/meals',
@@ -109,6 +111,7 @@ app.get('/', (req, res) => {
 
 // API路由
 app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/profile', generalLimiter, profileRoutes);
 app.use('/api/reviews', generalLimiter, reviewRoutes);
 app.use('/api/workouts', generalLimiter, workoutRoutes);
 app.use('/api/meals', generalLimiter, mealRoutes);
@@ -137,6 +140,8 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('Available endpoints:');
   console.log('  POST   /api/auth/register');
   console.log('  POST   /api/auth/login');
+  console.log('  GET    /api/profile');
+  console.log('  PUT    /api/profile');
   console.log('  GET    /api/reviews');
   console.log('  POST   /api/reviews');
   console.log('  GET    /api/workouts');

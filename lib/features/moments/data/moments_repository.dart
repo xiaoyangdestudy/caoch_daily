@@ -5,14 +5,23 @@ import 'package:uuid/uuid.dart';
 import '../../../shared/services/api_client.dart';
 import '../domain/moment_model.dart';
 
-const _momentsKey = 'moments_v1';
-
 class MomentsRepository {
   final SharedPreferences _prefs;
   final ApiClient _apiClient;
   final _uuid = const Uuid();
 
+  static const _storageKeyPrefix = 'moments';
+
   MomentsRepository(this._prefs, this._apiClient);
+
+  /// 获取当前用户的存储key
+  Future<String> _getStorageKey() async {
+    final username = await _apiClient.getUsername();
+    if (username != null && username.isNotEmpty) {
+      return '${_storageKeyPrefix}_$username';
+    }
+    return _storageKeyPrefix;
+  }
 
   /// 获取所有动态
   Future<List<Moment>> getAll() async {
@@ -125,7 +134,8 @@ class MomentsRepository {
   /// 从本地加载动态
   Future<List<Moment>> _loadFromLocal() async {
     try {
-      final jsonString = _prefs.getString(_momentsKey);
+      final storageKey = await _getStorageKey();
+      final jsonString = _prefs.getString(storageKey);
       if (jsonString == null || jsonString.isEmpty) {
         return [];
       }
@@ -143,8 +153,9 @@ class MomentsRepository {
   /// 保存到本地
   Future<void> _saveToLocal(List<Moment> moments) async {
     try {
+      final storageKey = await _getStorageKey();
       final jsonList = moments.map((m) => m.toJson()).toList();
-      await _prefs.setString(_momentsKey, jsonEncode(jsonList));
+      await _prefs.setString(storageKey, jsonEncode(jsonList));
     } catch (e) {
       // 忽略本地保存错误
     }

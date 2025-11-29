@@ -12,7 +12,6 @@ class FocusRepository {
   final SharedPreferences _prefs;
 
   static const _storageKeyPrefix = 'focus_sessions';
-  static const String _cacheKey = 'focus_sessions_cache';
 
   /// 获取当前用户的存储key
   Future<String> _getStorageKey() async {
@@ -98,7 +97,8 @@ class FocusRepository {
   /// 从本地加载专注记录
   Future<List<FocusSession>> _loadFromLocal() async {
     try {
-      final jsonString = _prefs.getString(_cacheKey);
+      final storageKey = await _getStorageKey();
+      final jsonString = _prefs.getString(storageKey);
       if (jsonString == null || jsonString.isEmpty) {
         return [];
       }
@@ -116,8 +116,9 @@ class FocusRepository {
   /// 保存到本地
   Future<void> _saveToLocal(List<FocusSession> sessions) async {
     try {
+      final storageKey = await _getStorageKey();
       final jsonList = sessions.map((r) => r.toJson()).toList();
-      await _prefs.setString(_cacheKey, jsonEncode(jsonList));
+      await _prefs.setString(storageKey, jsonEncode(jsonList));
     } catch (e) {
       // 忽略本地保存错误
     }

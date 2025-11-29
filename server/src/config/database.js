@@ -28,10 +28,35 @@ function initDatabase() {
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      nickname TEXT,
+      avatar TEXT,
+      signature TEXT,
+      email TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // 迁移：为已存在的 users 表添加新字段
+  const userTableInfo = db.prepare("PRAGMA table_info(users)").all();
+  const existingColumns = userTableInfo.map(col => col.name);
+
+  if (!existingColumns.includes('nickname')) {
+    db.exec(`ALTER TABLE users ADD COLUMN nickname TEXT;`);
+    console.log('✓ Added nickname column to users table');
+  }
+  if (!existingColumns.includes('avatar')) {
+    db.exec(`ALTER TABLE users ADD COLUMN avatar TEXT;`);
+    console.log('✓ Added avatar column to users table');
+  }
+  if (!existingColumns.includes('signature')) {
+    db.exec(`ALTER TABLE users ADD COLUMN signature TEXT;`);
+    console.log('✓ Added signature column to users table');
+  }
+  if (!existingColumns.includes('email')) {
+    db.exec(`ALTER TABLE users ADD COLUMN email TEXT;`);
+    console.log('✓ Added email column to users table');
+  }
 
   // 每日回顾表
   db.exec(`

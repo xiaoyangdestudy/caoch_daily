@@ -92,24 +92,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ref.invalidate(currentUsernameProvider);
 
       // 登录成功后，刷新所有数据Provider以从服务器同步数据
-      // 由于所有repository的fetchAll()已经实现了优先从服务器获取的逻辑，
-      // 我们只需要invalidate provider，让它们重新加载数据即可
-      try {
-        print('🔄 开始同步数据...');
-
-        // 刷新所有模块的provider
-        ref.invalidate(reviewEntriesProvider);
-        ref.invalidate(workoutListProvider);
-        ref.invalidate(dietRecordsProvider);
-        ref.invalidate(sleepRecordsProvider);
-        ref.invalidate(focusSessionsProvider);
-        ref.invalidate(momentsProvider);
-
-        print('✓ 数据同步完成');
-      } catch (e) {
-        print('⚠️ 同步数据失败: $e');
-        // 同步失败不影响登录流程
-      }
+      // 由于所有repository已实现userId隔离（使用 {prefix}_{username} 作为key），
+      // 不同用户的数据不会互相干扰，所以不需要清除本地缓存。
+      // fetchAll()会优先从服务器获取，失败时降级到当前用户的本地缓存。
+      ref.invalidate(reviewEntriesProvider);
+      ref.invalidate(workoutListProvider);
+      ref.invalidate(dietRecordsProvider);
+      ref.invalidate(sleepRecordsProvider);
+      ref.invalidate(focusSessionsProvider);
+      ref.invalidate(momentsProvider);
 
       if (mounted) {
         // 登录成功，跳转到首页

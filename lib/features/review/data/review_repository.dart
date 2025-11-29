@@ -19,7 +19,6 @@ class ReviewRepository {
   final SharedPreferences _prefs;
 
   static const _storageKeyPrefix = 'review_entries';
-  static const String _cacheKey = 'review_entries_cache';
 
   /// 获取当前用户的存储key
   Future<String> _getStorageKey() async {
@@ -126,7 +125,8 @@ class ReviewRepository {
   /// 从本地加载复盘记录
   Future<List<ReviewEntry>> _loadFromLocal() async {
     try {
-      final jsonString = _prefs.getString(_cacheKey);
+      final storageKey = await _getStorageKey();
+      final jsonString = _prefs.getString(storageKey);
       if (jsonString == null || jsonString.isEmpty) {
         return [];
       }
@@ -144,8 +144,9 @@ class ReviewRepository {
   /// 保存到本地
   Future<void> _saveToLocal(List<ReviewEntry> entries) async {
     try {
+      final storageKey = await _getStorageKey();
       final jsonList = entries.map((r) => r.toJson()).toList();
-      await _prefs.setString(_cacheKey, jsonEncode(jsonList));
+      await _prefs.setString(storageKey, jsonEncode(jsonList));
     } catch (e) {
       // 忽略本地保存错误
     }
