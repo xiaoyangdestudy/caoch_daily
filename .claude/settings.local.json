@@ -14,7 +14,9 @@
       "Bash(flutter analyze:*)",
       "Bash(taskkill:*)",
       "Bash(cat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)"
     ],
     "deny": [],
     "ask": []
