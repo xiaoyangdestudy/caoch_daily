@@ -490,6 +490,49 @@ class ApiClient {
     }
   }
 
+  // ==================== 阅读记录API ====================
+
+  /// 获取阅读记录列表
+  Future<List<Map<String, dynamic>>> getReading() async {
+    try {
+      final response = await get('/reading');
+      if (response.data['reading'] != null) {
+        return List<Map<String, dynamic>>.from(response.data['reading'] as List);
+      }
+      return [];
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 创建阅读记录
+  Future<Map<String, dynamic>> createReading(Map<String, dynamic> reading) async {
+    try {
+      final response = await post('/reading', data: reading);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 批量创建阅读记录
+  Future<void> batchCreateReading(List<Map<String, dynamic>> reading) async {
+    try {
+      await post('/reading/batch', data: {'reading': reading});
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 删除阅读记录
+  Future<void> deleteReading(String id) async {
+    try {
+      await delete('/reading/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== 错误处理 ====================
 
   /// 统一错误处理

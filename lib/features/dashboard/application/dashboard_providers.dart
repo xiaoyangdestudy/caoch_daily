@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../diet/application/diet_providers.dart';
 import '../../diet/domain/diet_models.dart';
 import '../../profile/application/profile_provider.dart';
+import '../../reading/application/reading_providers.dart';
+import '../../reading/domain/reading_record.dart';
 import '../../sleep/application/sleep_providers.dart';
 import '../../sleep/domain/sleep_record.dart';
 import '../../sports/application/sports_providers.dart';
@@ -16,15 +18,17 @@ const _exerciseTargetMinutes = 45;
 const _dietTargetCalories = 1800;
 const _sleepTargetHours = 8.0;
 const _workTargetHours = 4.0;
+const _readingTargetMinutes = 30;
 
 final dashboardOverviewProvider = Provider<DashboardOverviewState>((ref) {
   final workouts = ref.watch(workoutListProvider);
   final meals = ref.watch(dietRecordsProvider);
   final sleeps = ref.watch(sleepRecordsProvider);
   final sessions = ref.watch(focusSessionsProvider);
+  final reading = ref.watch(readingListProvider);
   final profile = ref.watch(profileProvider);
 
-  final asyncValues = [workouts, meals, sleeps, sessions];
+  final asyncValues = [workouts, meals, sleeps, sessions, reading];
   if (asyncValues.any((value) => value.isLoading)) {
     return const DashboardOverviewState.loading();
   }
@@ -41,6 +45,7 @@ final dashboardOverviewProvider = Provider<DashboardOverviewState>((ref) {
     meals: meals.value ?? const [],
     sleeps: sleeps.value ?? const [],
     sessions: sessions.value ?? const [],
+    reading: reading.value ?? const [],
   );
 
   return DashboardOverviewState.data(overview);
@@ -52,6 +57,7 @@ DashboardOverview _buildOverview({
   required List<MealRecord> meals,
   required List<SleepRecord> sleeps,
   required List<FocusSession> sessions,
+  required List<ReadingRecord> reading,
 }) {
   final today = DateTime.now();
   final exerciseMinutes = workouts
@@ -70,6 +76,9 @@ DashboardOverview _buildOverview({
         0,
         (sum, session) => sum + session.actualDuration.inMinutes / 60.0,
       );
+  final readingMinutes = reading
+      .where((record) => _isSameDay(record.startTime, today))
+      .fold<int>(0, (sum, record) => sum + record.durationMinutes);
 
   final cards = [
     DashboardCardStat(
@@ -100,6 +109,13 @@ DashboardOverview _buildOverview({
       progress: _progress(workHours / _workTargetHours),
       rawValue: workHours,
     ),
+    DashboardCardStat(
+      type: RecordType.reading,
+      value: readingMinutes.toString(),
+      subValue: 'min',
+      progress: _progress(readingMinutes / _readingTargetMinutes),
+      rawValue: readingMinutes.toDouble(),
+    ),
   ];
 
   final summary = _buildSummary(
@@ -107,6 +123,7 @@ DashboardOverview _buildOverview({
     calories: dietCalories,
     sleepHours: sleepHours,
     workHours: workHours,
+    readingMinutes: readingMinutes,
   );
 
   final vitality = _calculateVitality(
@@ -114,6 +131,7 @@ DashboardOverview _buildOverview({
     calories: dietCalories,
     sleepHours: sleepHours,
     workHours: workHours,
+    readingMinutes: readingMinutes,
   );
 
   return DashboardOverview(
@@ -171,6 +189,7 @@ int _calculateVitality({
   required int calories,
   required double sleepHours,
   required double workHours,
+  required int readingMinutes,
 }) {
   final exerciseScore = (exerciseMinutes / _exerciseTargetMinutes)
       .clamp(0, 1)
@@ -181,8 +200,11 @@ int _calculateVitality({
       .toDouble();
   final sleepScore = (sleepHours / _sleepTargetHours).clamp(0, 1).toDouble();
   final workScore = (workHours / _workTargetHours).clamp(0, 1).toDouble();
+  final readingScore = (readingMinutes / _readingTargetMinutes)
+      .clamp(0, 1)
+      .toDouble();
 
-  final average = (exerciseScore + dietScore + sleepScore + workScore) / 4;
+  final average = (exerciseScore + dietScore + sleepScore + workScore + readingScore) / 5;
   return (average * 100).round();
 }
 
@@ -191,9 +213,10 @@ String _buildSummary({
   required int calories,
   required double sleepHours,
   required double workHours,
+  required int readingMinutes,
 }) {
   final total =
-      exerciseMinutes + calories + sleepHours.round() + workHours.round();
+      exerciseMinutes + calories + sleepHours.round() + workHours.round() + readingMinutes;
   if (total == 0) {
     return '今天还没有任何记录，先完成一次打卡吧。';
   }
@@ -205,6 +228,9 @@ String _buildSummary({
   }
   if (calories > _dietTargetCalories + 200) {
     return '摄入略多，下一餐可以换成轻食。';
+  }
+  if (readingMinutes >= _readingTargetMinutes) {
+    return '阅读表现很棒，知识在不断积累。';
   }
   if (workHours >= _workTargetHours) {
     return '专注表现很好，记得适当休息喝水。';

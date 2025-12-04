@@ -9,6 +9,7 @@ const MEALS_FILE = path.join(DB_DIR, 'meals.json');
 const SLEEP_FILE = path.join(DB_DIR, 'sleep.json');
 const FOCUS_FILE = path.join(DB_DIR, 'focus.json');
 const REVIEWS_FILE = path.join(DB_DIR, 'reviews.json');
+const READING_FILE = path.join(DB_DIR, 'reading.json');
 
 // 确保数据目录存在
 if (!fs.existsSync(DB_DIR)) {
@@ -29,6 +30,7 @@ initFile(MEALS_FILE);
 initFile(SLEEP_FILE);
 initFile(FOCUS_FILE);
 initFile(REVIEWS_FILE);
+initFile(READING_FILE);
 
 // 读取数据
 const readData = (filePath) => {
@@ -196,6 +198,9 @@ const focus = createDataOperations(FOCUS_FILE);
 // 复盘记录操作
 const reviews = createDataOperations(REVIEWS_FILE);
 
+// 阅读记录操作
+const reading = createDataOperations(READING_FILE);
+
 module.exports = {
   users,
   moments,
@@ -203,5 +208,6 @@ module.exports = {
   meals,
   sleep,
   focus,
-  reviews
+  reviews,
+  reading
 };

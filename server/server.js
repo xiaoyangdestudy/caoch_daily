@@ -10,6 +10,7 @@ const mealsRoutes = require('./routes/meals');
 const sleepRoutes = require('./routes/sleep');
 const focusRoutes = require('./routes/focus');
 const reviewsRoutes = require('./routes/reviews');
+const readingRoutes = require('./routes/reading');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use('/api/meals', mealsRoutes);
 app.use('/api/sleep', sleepRoutes);
 app.use('/api/focus', focusRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/reading', readingRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {
