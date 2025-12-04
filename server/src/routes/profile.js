@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/database');
-const { authenticate } = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 
 /**
  * GET /api/profile
  * 获取当前用户的个人资料
  */
-router.get('/', authenticate, (req, res) => {
+router.get('/', authMiddleware, (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
 
     const user = db.prepare(`
       SELECT id, username, nickname, avatar, signature, email, created_at
@@ -33,9 +33,9 @@ router.get('/', authenticate, (req, res) => {
  * 更新当前用户的个人资料
  * Body: { nickname?, avatar?, signature?, email? }
  */
-router.put('/', authenticate, (req, res) => {
+router.put('/', authMiddleware, (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { nickname, avatar, signature, email } = req.body;
 
     // 验证输入
