@@ -128,101 +128,94 @@ class _DietPageState extends ConsumerState<DietPage> {
   @override
   Widget build(BuildContext context) {
     final recordsAsync = ref.watch(dietRecordsProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openRecordOptions,
-        backgroundColor: Colors.black,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
+        backgroundColor: colorScheme.primary,
+        icon: Icon(Icons.add, color: colorScheme.onPrimary),
+        label: Text(
           '记录饮食',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/dashboard_background.png'),
-            fit: BoxFit.cover,
-            opacity: 0.3,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 0,
+            floating: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: CircleAvatar(
+                backgroundColor: colorScheme.surface.withOpacity(0.8),
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+            ),
+            title: Text(
+              '饮食记录',
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            centerTitle: true,
           ),
-        ),
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 0,
-              floating: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: CircleAvatar(
-                  backgroundColor: Colors.white.withOpacity(0.8),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                    onPressed: () => context.pop(),
-                  ),
-                ),
-              ),
-              title: const Text(
-                '饮食记录',
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              centerTitle: true,
-            ),
-            SliverToBoxAdapter(
-              child: recordsAsync.when(
-                data: (records) {
-                  final grouped = _groupByMeal(records);
-                  final consumed = grouped.values
-                      .expand((element) => element)
-                      .fold<int>(
-                        0,
-                        (prev, record) => prev + record.totalCalories,
-                      );
+          SliverToBoxAdapter(
+            child: recordsAsync.when(
+              data: (records) {
+                final grouped = _groupByMeal(records);
+                final consumed = grouped.values
+                    .expand((element) => element)
+                    .fold<int>(
+                      0,
+                      (prev, record) => prev + record.totalCalories,
+                    );
 
-                  return Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        _CalorieSummaryCard(
-                          consumed: consumed,
-                          goal: _dailyGoal,
-                          selectedDate: _selectedDate,
-                          onSelectDate: _pickDate,
+                return Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      _CalorieSummaryCard(
+                        consumed: consumed,
+                        goal: _dailyGoal,
+                        selectedDate: _selectedDate,
+                        onSelectDate: _pickDate,
+                      ),
+                      const SizedBox(height: 24),
+                      for (final meal in MealType.values) ...[
+                        _MealSection(
+                          type: meal,
+                          records: grouped[meal] ?? [],
+                          onAdd: () => _openAddSheet(initialType: meal),
+                          onDelete: (id) =>
+                              ref.read(dietRecordsProvider.notifier).remove(id),
                         ),
-                        const SizedBox(height: 24),
-                        for (final meal in MealType.values) ...[
-                          _MealSection(
-                            type: meal,
-                            records: grouped[meal] ?? [],
-                            onAdd: () => _openAddSheet(initialType: meal),
-                            onDelete: (id) =>
-                                ref.read(dietRecordsProvider.notifier).remove(id),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        const SizedBox(height: 80),
+                        const SizedBox(height: 16),
                       ],
-                    ),
-                  );
-                },
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, _) => Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text('加载失败：$error'),
-                ),
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text('加载失败：$error'),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -246,11 +239,13 @@ class _CalorieSummaryCard extends StatelessWidget {
     final progress = (consumed / goal).clamp(0.0, 1.0);
     final remaining = (goal - consumed).clamp(0, goal);
     final dateLabel = DateFormat('yyyy年MM月dd日').format(selectedDate);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [AppColors.candyOrange, Color(0xFFFFAB91)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -391,13 +386,16 @@ class _MealSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: colorScheme.surface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(24),
         boxShadow: AppShadows.white3d,
-        border: Border.all(color: Colors.white),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,24 +413,24 @@ class _MealSection extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 type.label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const Spacer(),
               Text(
                 '$_totalCalories kcal',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black54,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               IconButton(
                 onPressed: onAdd,
-                icon: const Icon(Icons.add_circle_outline_rounded),
+                icon: Icon(Icons.add_circle_outline_rounded, color: colorScheme.onSurface),
               ),
             ],
           ),
@@ -442,7 +440,7 @@ class _MealSection extends StatelessWidget {
               child: Text(
                 '还没有记录${type.label}，点击右侧添加',
                 style: TextStyle(
-                  color: Colors.grey.shade400,
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -473,6 +471,9 @@ class _MealRecordTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final item = record.items.isNotEmpty
         ? record.items.first
         : const FoodItem(
@@ -488,9 +489,9 @@ class _MealRecordTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.5)),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -511,9 +512,9 @@ class _MealRecordTile extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -522,9 +523,9 @@ class _MealRecordTile extends StatelessWidget {
                   'P ${item.protein.toStringAsFixed(1)}g · '
                   'C ${item.carbs.toStringAsFixed(1)}g · '
                   'F ${item.fat.toStringAsFixed(1)}g',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Colors.black45,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -532,7 +533,7 @@ class _MealRecordTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     record.notes!,
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ],
@@ -540,7 +541,7 @@ class _MealRecordTile extends StatelessWidget {
           ),
           IconButton(
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline, color: Colors.black38),
+            icon: Icon(Icons.delete_outline, color: colorScheme.onSurfaceVariant),
           ),
         ],
       ),

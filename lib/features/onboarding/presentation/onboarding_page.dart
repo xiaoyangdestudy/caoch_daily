@@ -22,18 +22,21 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       desc: '记录运动、饮食和睡眠，让 AI 帮你看见每个细小的进步。',
       emoji: '🥑',
       gradient: [AppColors.candyMint, Color(0xFFE0F7FF)],
+      darkGradient: [AppColors.background, AppColors.backgroundDark],
     ),
     _OnboardingStep(
       title: '每日闪光复盘',
       desc: '晚上 3 分钟，回顾今日高光，生成明日行动计划。',
       emoji: '✨',
       gradient: [Color(0xFFF3E8FF), Color(0xFFFFB3D9)],
+      darkGradient: [AppColors.backgroundDark, AppColors.surface],
     ),
     _OnboardingStep(
       title: '看见成长轨迹',
       desc: '阅读、学习不再断更，让成长的每一步都色彩斑斓。',
       emoji: '🚀',
       gradient: [Color(0xFFFFF7CC), AppColors.candyLime],
+      darkGradient: [AppColors.surface, AppColors.background],
     ),
   ];
 
@@ -57,6 +60,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     final info = _steps[step];
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -64,7 +70,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         duration: const Duration(milliseconds: 500),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: info.gradient,
+            colors: isDark ? info.darkGradient : info.gradient,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -79,7 +85,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   child: TextButton(
                     onPressed: _skip,
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.black54,
+                      foregroundColor: isDark ? Colors.white70 : Colors.black54,
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     child: const Text('跳过'),
@@ -96,15 +102,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           width: 220,
                           height: 220,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.6),
+                            color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.6),
                             shape: BoxShape.circle,
-                            boxShadow: const [
+                            boxShadow: [
                               BoxShadow(
-                                color: Colors.black12,
-                                offset: Offset(0, 12),
+                                color: isDark ? Colors.black26 : Colors.black12,
+                                offset: const Offset(0, 12),
                                 blurRadius: 30,
                               ),
                             ],
+                            border: isDark ? Border.all(color: Colors.white10) : null,
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -117,19 +124,19 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       Text(
                         info.title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         info.desc,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
-                          color: Colors.black54,
+                          color: isDark ? Colors.white70 : Colors.black54,
                           height: 1.4,
                         ),
                       ),
@@ -149,8 +156,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           width: step == index ? 32 : 10,
                           decoration: BoxDecoration(
                             color: step == index
-                                ? Colors.black87
-                                : Colors.black26,
+                                ? (isDark ? AppColors.neonBlue : Colors.black87)
+                                : (isDark ? Colors.white24 : Colors.black26),
                             borderRadius: BorderRadius.circular(999),
                           ),
                         ),
@@ -166,8 +173,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
+                          backgroundColor: isDark ? AppColors.neonBlue : Colors.black,
+                          foregroundColor: isDark ? Colors.black : Colors.white,
                           textStyle: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -193,10 +200,12 @@ class _OnboardingStep {
     required this.desc,
     required this.emoji,
     required this.gradient,
+    required this.darkGradient,
   });
 
   final String title;
   final String desc;
   final String emoji;
   final List<Color> gradient;
+  final List<Color> darkGradient;
 }

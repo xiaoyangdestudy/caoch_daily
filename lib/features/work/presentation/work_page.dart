@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../shared/design/app_colors.dart';
 import '../../work/application/work_providers.dart';
 import '../../work/domain/focus_session.dart';
 
@@ -142,20 +141,22 @@ class _WorkPageState extends ConsumerState<WorkPage> {
   @override
   Widget build(BuildContext context) {
     final sessionsAsync = ref.watch(focusSessionsProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           '工作专注',
           style: TextStyle(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.5,
           ),
@@ -226,21 +227,25 @@ class _FocusTimerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: isRunning ? Colors.black : Colors.black12,
+          color: isRunning ? colorScheme.primary : colorScheme.outline.withOpacity(0.2),
           width: 1.5,
         ),
+        color: colorScheme.surface,
       ),
       child: Column(
         children: [
           Text(
             timeString,
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 64,
               fontWeight: FontWeight.w200,
               letterSpacing: -2,
@@ -251,13 +256,13 @@ class _FocusTimerCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: isRunning ? Colors.black : Colors.grey[100],
+              color: isRunning ? colorScheme.primary : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               isRunning ? 'RUNNING' : 'FOCUS',
               style: TextStyle(
-                color: isRunning ? Colors.white : Colors.black54,
+                color: isRunning ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 2,
@@ -270,14 +275,15 @@ class _FocusTimerCard extends StatelessWidget {
             children: [
               Text(
                 taskName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
                 ),
               ),
               IconButton(
                 onPressed: onEditTask,
-                icon: const Icon(Icons.edit, size: 18),
+                icon: Icon(Icons.edit, size: 18, color: colorScheme.onSurface),
               ),
             ],
           ),
@@ -298,20 +304,24 @@ class _TaskSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        color: Colors.grey[50],
+        color: colorScheme.surface,
       ),
       child: Row(
         children: [
           Expanded(
-            child: _buildStatItem('已完成', completedCount.toString(), 'Sessions'),
+            child: _buildStatItem(context, '已完成', completedCount.toString(), 'Sessions'),
           ),
-          Container(width: 1, height: 48, color: Colors.black12),
+          Container(width: 1, height: 48, color: colorScheme.outline.withOpacity(0.2)),
           Expanded(
             child: _buildStatItem(
+              context,
               '投入时长',
               totalHours.toStringAsFixed(1),
               'Hours',
@@ -322,23 +332,26 @@ class _TaskSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value, String unit) {
+  Widget _buildStatItem(BuildContext context, String label, String value, String unit) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w300,
-            color: Colors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           '$unit $label',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.black45,
+            color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
           ),
@@ -355,6 +368,9 @@ class _ProductivityChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final maxHours = stats.fold<double>(
       0,
       (maxValue, stat) => stat.hours > maxValue ? stat.hours : maxValue,
@@ -364,12 +380,12 @@ class _ProductivityChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'ACTIVITY',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Colors.black45,
+            color: colorScheme.onSurfaceVariant,
             letterSpacing: 2,
           ),
         ),
@@ -388,15 +404,15 @@ class _ProductivityChart extends StatelessWidget {
                     width: 20,
                     height: height,
                     decoration: BoxDecoration(
-                      color: stat.hours > 0.5 ? Colors.black : Colors.grey[200],
+                      color: stat.hours > 0.5 ? colorScheme.primary : colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     stat.label,
-                    style: const TextStyle(
-                      color: Colors.black38,
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -418,16 +434,19 @@ class _RecentSessionsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     if (sessions.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: Colors.grey[50],
+          color: colorScheme.surface,
         ),
-        child: const Text(
+        child: Text(
           '还没有记录，开始一次专注吧！',
-          style: TextStyle(color: Colors.black45),
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -436,14 +455,14 @@ class _RecentSessionsList extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        color: Colors.grey[50],
+        color: colorScheme.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '最近记录',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
           ),
           const SizedBox(height: 16),
           ...sessions.map((session) => _FocusSessionTile(session: session)),
@@ -460,6 +479,8 @@ class _FocusSessionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final formatter = DateFormat('MM/dd HH:mm');
     final durationMinutes = session.actualDuration.inMinutes;
 
@@ -472,12 +493,12 @@ class _FocusSessionTile extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              color: session.completed ? Colors.black : Colors.grey[200],
+              color: session.completed ? colorScheme.primary : colorScheme.surfaceContainerHighest,
             ),
             alignment: Alignment.center,
             child: Icon(
               session.completed ? Icons.check : Icons.pause,
-              color: session.completed ? Colors.white : Colors.black54,
+              color: session.completed ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(width: 16),
@@ -487,21 +508,22 @@ class _FocusSessionTile extends StatelessWidget {
               children: [
                 Text(
                   session.taskName ?? '专注任务',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   formatter.format(session.startTime),
-                  style: const TextStyle(fontSize: 12, color: Colors.black45),
+                  style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
           ),
           Text(
             '$durationMinutes min',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
           ),
         ],
       ),
@@ -524,6 +546,9 @@ class _StartFocusButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -531,15 +556,15 @@ class _StartFocusButton extends StatelessWidget {
         width: double.infinity,
         height: 64,
         decoration: BoxDecoration(
-          color: isRunning ? Colors.white : Colors.black,
+          color: isRunning ? colorScheme.surface : colorScheme.primary,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: Colors.black, width: 2),
+          border: Border.all(color: colorScheme.primary, width: 2),
         ),
         child: Center(
           child: Text(
             isRunning ? 'PAUSE SESSION' : 'START SESSION',
             style: TextStyle(
-              color: isRunning ? Colors.black : Colors.white,
+              color: isRunning ? colorScheme.onSurface : colorScheme.onPrimary,
               fontSize: 14,
               fontWeight: FontWeight.bold,
               letterSpacing: 2,

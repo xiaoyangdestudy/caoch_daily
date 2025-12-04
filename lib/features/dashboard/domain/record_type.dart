@@ -38,18 +38,52 @@ extension RecordTypeX on RecordType {
   Color get color {
     switch (this) {
       case RecordType.exercise:
-        return AppColors.candyPink;
+        return AppColors.exercise;
       case RecordType.diet:
-        return AppColors.candyYellow;
+        return AppColors.diet;
       case RecordType.sleep:
-        return AppColors.candyBlue;
+        return AppColors.sleep;
       case RecordType.work:
-        return AppColors.candyPurple;
+        return AppColors.work;
       case RecordType.reading:
-        return AppColors.candyGreen;
+        return AppColors.reading;
     }
   }
 
-  bool get prefersDarkText =>
-      this == RecordType.diet || this == RecordType.sleep;
+  Gradient get gradient {
+    switch (this) {
+      case RecordType.exercise:
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.exerciseLight, AppColors.exercise],
+        );
+      case RecordType.diet:
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.dietLight, AppColors.diet],
+        );
+      case RecordType.sleep:
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.sleepLight, AppColors.sleep],
+        );
+      case RecordType.work:
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.workLight, AppColors.work],
+        );
+      case RecordType.reading:
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.readingLight, AppColors.reading],
+        );
+    }
+  }
+
+  bool get prefersDarkText => false; // All new colors work well with white text
 }

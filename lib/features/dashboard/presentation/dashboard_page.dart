@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../shell/presentation/app_shell_page.dart';
-
 import '../../../app/router/app_routes.dart';
 import '../../../shared/design/app_colors.dart';
 import '../../../shared/design/app_shadows.dart';
@@ -45,135 +43,160 @@ class DashboardPage extends ConsumerWidget {
     final profileState = ref.watch(profileProvider);
     final userEmoji = profileState.overview.emoji;
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/dashboard_background.png'),
-            fit: BoxFit.cover,
-            opacity: 0.3,
-          ),
-        ),
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                  child: Row(
-                    children: [
-                      Column(
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _dateLabel,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black45,
-                              letterSpacing: 2,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _dateLabel,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                                letterSpacing: 1.5,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           Text(
                             nickname,
-                            style: const TextStyle(
-                              fontSize: 28,
+                            style: TextStyle(
+                              fontSize: 32,
                               fontWeight: FontWeight.w900,
+                              color: colorScheme.onSurface,
+                              height: 1.0,
                             ),
                           ),
                         ],
                       ),
-                      const Spacer(),
-                      // Review Button
-                      Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: AppShadows.cardSoft,
-                        ),
-                        child: IconButton(
-                          onPressed: () => context.go(AppRoutes.review),
-                          icon: const Icon(Icons.note_alt_outlined),
-                          color: AppColors.candyPurple,
-                          tooltip: '每日复盘',
-                        ),
-                      ),
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: AppColors.candyPurple.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.candyPurple.withOpacity(0.2),
-                            width: 2,
+                    ),
+                    const SizedBox(width: 12),
+                    // Review Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            offset: const Offset(0, 2),
+                            blurRadius: 8,
+                            spreadRadius: 0,
                           ),
-                          boxShadow: AppShadows.cardSoft,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          userEmoji,
-                          style: const TextStyle(fontSize: 20),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                      child: IconButton(
+                        onPressed: () => context.go(AppRoutes.review),
+                        icon: const Icon(Icons.note_alt_outlined),
+                        color: AppColors.primary,
+                        tooltip: '每日复盘',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primaryLight,
+                            AppColors.primary,
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            offset: const Offset(0, 4),
+                            blurRadius: 12,
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        userEmoji,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _HeroCard(
-                    summary: summaryText,
-                    vitality: vitality,
-                    isLoading: overviewState.isLoading,
-                  ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _HeroCard(
+                  summary: summaryText,
+                  vitality: vitality,
+                  isLoading: overviewState.isLoading,
                 ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1,
-                  ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final card = cards[index];
-                    return DashboardStatCard(
-                      title: card.type.label,
-                      type: card.type,
-                      value: card.value,
-                      subValue: card.subValue,
-                      progress: card.progress,
-                      darkText: card.type.prefersDarkText,
-                      onTap: () {
-                        if (card.type == RecordType.exercise) {
-                          context.push(AppRoutes.sports);
-                        } else if (card.type == RecordType.diet) {
-                          context.push(AppRoutes.diet);
-                        } else if (card.type == RecordType.sleep) {
-                          context.push(AppRoutes.sleep);
-                        } else if (card.type == RecordType.work) {
-                          context.push(AppRoutes.work);
-                        } else {
-                          _openRecordSheet(context, card.type);
-                        }
-                      },
-                    );
-                  }, childCount: cards.length),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1,
                 ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final card = cards[index];
+                  return DashboardStatCard(
+                    title: card.type.label,
+                    type: card.type,
+                    value: card.value,
+                    subValue: card.subValue,
+                    progress: card.progress,
+                    darkText: card.type.prefersDarkText,
+                    onTap: () {
+                      if (card.type == RecordType.exercise) {
+                        context.push(AppRoutes.sports);
+                      } else if (card.type == RecordType.diet) {
+                        context.push(AppRoutes.diet);
+                      } else if (card.type == RecordType.sleep) {
+                        context.push(AppRoutes.sleep);
+                      } else if (card.type == RecordType.work) {
+                        context.push(AppRoutes.work);
+                      } else {
+                        _openRecordSheet(context, card.type);
+                      }
+                    },
+                  );
+                }, childCount: cards.length),
               ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
-            ],
-          ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
+          ],
         ),
       ),
     );
@@ -193,55 +216,113 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: AppColors.candyGreen,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.secondaryLight,
+            AppColors.secondary,
+            AppColors.secondaryDark,
+          ],
+        ),
         borderRadius: BorderRadius.circular(28),
-        boxShadow: AppShadows.green3d,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.secondary.withOpacity(0.3),
+            offset: const Offset(0, 8),
+            blurRadius: 24,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Stack(
         children: [
+          // Top right decorative circle
           Positioned(
-            top: -30,
-            right: -30,
+            top: -40,
+            right: -40,
             child: Container(
-              width: 130,
-              height: 130,
+              width: 150,
+              height: 150,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
                 shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.05),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
+          // Bottom left decorative circle
           Positioned(
-            bottom: -20,
-            left: -20,
+            bottom: -30,
+            left: -30,
             child: Container(
-              width: 100,
-              height: 100,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                color: Colors.yellow.withOpacity(0.3),
                 shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.03),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
+          // Center decorative circle
+          Positioned(
+            top: 60,
+            right: 30,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.1),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Glassmorphism overlay
           Positioned.fill(
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: LinearGradient(
-                    colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.05),
+                    Colors.transparent,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -251,76 +332,99 @@ class _HeroCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           '活力值',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black54,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white.withOpacity(0.9),
                             letterSpacing: 2,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
                         Text(
                           isLoading ? '--' : vitality.toString(),
                           style: const TextStyle(
-                            fontSize: 48,
+                            fontSize: 52,
                             fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1.0,
                           ),
                         ),
                       ],
                     ),
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.black12, width: 2),
-                        boxShadow: AppShadows.white3d,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.3),
+                            offset: const Offset(0, 4),
+                            blurRadius: 12,
+                            spreadRadius: 0,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            offset: const Offset(0, 2),
+                            blurRadius: 8,
+                            spreadRadius: 0,
+                          ),
+                        ],
                       ),
                       alignment: Alignment.center,
-                      child: const Text('🔥', style: TextStyle(fontSize: 24)),
+                      child: const Text('🔥', style: TextStyle(fontSize: 28)),
                     ),
                   ],
                 ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                    horizontal: 14,
+                    vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white54),
-                    boxShadow: const [
+                    color: Colors.white.withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
-                        offset: Offset(0, 6),
-                        blurRadius: 12,
+                        color: Colors.black.withOpacity(0.05),
+                        offset: const Offset(0, 2),
+                        blurRadius: 8,
+                        spreadRadius: 0,
                       ),
                     ],
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 28,
-                        height: 28,
-                        decoration: const BoxDecoration(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.black87,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.secondaryLight,
+                              AppColors.secondary,
+                            ],
+                          ),
                         ),
                         alignment: Alignment.center,
-                        child: const Text('😎', style: TextStyle(fontSize: 14)),
+                        child: const Text('😎', style: TextStyle(fontSize: 16)),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           summary,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                            height: 1.3,
                           ),
                         ),
                       ),
@@ -367,7 +471,7 @@ const List<DashboardCardStat> _initialCardStats = [
   ),
 ];
 
-class DashboardStatCard extends StatelessWidget {
+class DashboardStatCard extends StatefulWidget {
   const DashboardStatCard({
     super.key,
     required this.title,
@@ -387,8 +491,15 @@ class DashboardStatCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool darkText;
 
+  @override
+  State<DashboardStatCard> createState() => _DashboardStatCardState();
+}
+
+class _DashboardStatCardState extends State<DashboardStatCard> {
+  bool _isPressed = false;
+
   List<BoxShadow> get _shadows {
-    switch (type) {
+    switch (widget.type) {
       case RecordType.exercise:
         return AppShadows.pink3d;
       case RecordType.diet:
@@ -404,122 +515,158 @@ class DashboardStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = type.color;
-
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: _shadows,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap?.call();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: widget.type.gradient,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: _isPressed 
+                ? _shadows.map((s) => BoxShadow(
+                    color: s.color.withOpacity(s.color.opacity * 0.5),
+                    blurRadius: s.blurRadius * 0.5,
+                    offset: s.offset * 0.5,
+                    spreadRadius: s.spreadRadius,
+                  )).toList()
+                : _shadows,
+          ),
+          child: Stack(
+            children: [
+              // Subtle shine effect
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(darkText ? 0.4 : 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    type.icon,
-                    color: darkText ? Colors.black87 : Colors.white,
-                    size: 16,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.15),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
-                if (progress != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(darkText ? 0.4 : 0.2),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '${(progress! * 100).round()}%',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: darkText ? Colors.black87 : Colors.white,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(widget.darkText ? 0.4 : 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          widget.type.icon,
+                          color: widget.darkText ? Colors.black87 : Colors.white,
+                          size: 16,
+                        ),
                       ),
-                    ),
-                  ),
-              ],
-            ),
-            const Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                    color: darkText ? Colors.black87 : Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: darkText ? Colors.black : Colors.white,
-                      ),
-                    ),
-                    if (subValue != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4, left: 4),
-                        child: Text(
-                          subValue!,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: darkText
-                                ? Colors.black.withOpacity(0.7)
-                                : Colors.white70,
+                      if (widget.progress != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(widget.darkText ? 0.4 : 0.2),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '${(widget.progress! * 100).round()}%',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: widget.darkText ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.95),
+                            ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                if (progress != null) ...[
-                  const SizedBox(height: 4),
-                  Container(
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(darkText ? 0.1 : 0.3),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: progress!.clamp(0.0, 1.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: darkText ? Colors.black87 : Colors.white,
-                          borderRadius: BorderRadius.circular(999),
+                    ],
+                  ),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                          color: widget.darkText ? Colors.black.withOpacity(0.7) : Colors.white.withOpacity(0.9),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 1),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            widget.value,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: widget.darkText ? Colors.black87 : Colors.white,
+                            ),
+                          ),
+                          if (widget.subValue != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4, left: 4),
+                              child: Text(
+                                widget.subValue!,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: widget.darkText
+                                      ? Colors.black.withOpacity(0.6)
+                                      : Colors.white.withOpacity(0.7),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (widget.progress != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(widget.darkText ? 0.1 : 0.3),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: widget.progress!.clamp(0.0, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: widget.darkText ? Colors.black87 : Colors.white,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

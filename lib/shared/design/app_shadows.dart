@@ -37,6 +37,36 @@ class AppShadows {
     BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
   ];
 
+  static List<BoxShadow> green3d = [
+    BoxShadow(color: const Color(0xFF00FF94).withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+  ];
+
+  static List<BoxShadow> blue3d = [
+    BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+  ];
+
+  static List<BoxShadow> pink3d = [
+    BoxShadow(color: const Color(0xFFFF0055).withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+  ];
+
+  static List<BoxShadow> yellow3d = [
+    BoxShadow(color: const Color(0xFFFF9100).withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+  ];
+
+  static List<BoxShadow> orange3d = [
+    BoxShadow(color: const Color(0xFFFF9100).withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+  ];
+
+  static List<BoxShadow> white3d = [
+    BoxShadow(color: Colors.white.withOpacity(0.2), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: 0),
+    BoxShadow(color: Colors.black.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: 0),
+  ];
+
   static List<BoxShadow> innerShadow = [
      BoxShadow(color: Colors.white.withOpacity(0.05), offset: const Offset(-1, -1), blurRadius: 2),
      BoxShadow(color: Colors.black.withOpacity(0.5), offset: const Offset(1, 1), blurRadius: 2),

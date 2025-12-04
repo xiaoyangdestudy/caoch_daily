@@ -11,64 +11,58 @@ class StatsPage extends ConsumerWidget {
   const StatsPage({super.key});
 
   @override
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(statsProvider);
     final notifier = ref.read(statsProvider.notifier);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/dashboard_background.png'),
-            fit: BoxFit.cover,
-            opacity: 0.3,
-          ),
-        ),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '统计',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black87,
-                        ),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '统计',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: colorScheme.onSurface,
                       ),
-                      const SizedBox(height: 24),
-                      _DateSelector(
-                        period: state.period,
-                        focusedDate: state.focusedDate,
-                        onPeriodChanged: notifier.setPeriod,
-                        onPrevious: notifier.previousPeriod,
-                        onNext: notifier.nextPeriod,
-                      ),
-                      const SizedBox(height: 24),
-                      _SummaryCards(
-                        duration: state.totalDurationMinutes,
-                        calories: state.totalCalories,
-                        count: state.totalWorkouts,
-                      ),
-                      const SizedBox(height: 24),
-                      _ActivityChart(
-                        period: state.period,
-                        dailyDuration: state.dailyDuration,
-                      ),
-                      const SizedBox(height: 24),
-                      _RecentActivityList(records: state.filteredRecords),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 24),
+                    _DateSelector(
+                      period: state.period,
+                      focusedDate: state.focusedDate,
+                      onPeriodChanged: notifier.setPeriod,
+                      onPrevious: notifier.previousPeriod,
+                      onNext: notifier.nextPeriod,
+                    ),
+                    const SizedBox(height: 24),
+                    _SummaryCards(
+                      duration: state.totalDurationMinutes,
+                      calories: state.totalCalories,
+                      count: state.totalWorkouts,
+                    ),
+                    const SizedBox(height: 24),
+                    _ActivityChart(
+                      period: state.period,
+                      dailyDuration: state.dailyDuration,
+                    ),
+                    const SizedBox(height: 24),
+                    _RecentActivityList(records: state.filteredRecords),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -106,13 +100,16 @@ class _DateSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: colorScheme.surface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppShadows.cardSoft,
-        border: Border.all(color: Colors.white),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: Column(
         children: [
@@ -141,20 +138,20 @@ class _DateSelector extends StatelessWidget {
               IconButton(
                 onPressed: onPrevious,
                 icon: const Icon(Icons.chevron_left),
-                color: Colors.black54,
+                color: colorScheme.onSurfaceVariant,
               ),
               Text(
                 _dateRangeLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: colorScheme.onSurface,
                 ),
               ),
               IconButton(
                 onPressed: onNext,
                 icon: const Icon(Icons.chevron_right),
-                color: Colors.black54,
+                color: colorScheme.onSurfaceVariant,
               ),
             ],
           ),
@@ -177,6 +174,9 @@ class _SegmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -192,7 +192,7 @@ class _SegmentButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : Colors.black54,
+            color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -330,33 +330,36 @@ class _ActivityChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: colorScheme.surface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppShadows.cardSoft,
-        border: Border.all(color: Colors.white),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '活动趋势',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 20),
           SizedBox(
             height: 200,
             child: dailyDuration.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       '暂无数据',
-                      style: TextStyle(color: Colors.black45),
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                   )
                 : BarChart(
@@ -374,9 +377,9 @@ class _ActivityChart extends StatelessWidget {
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
                                   _getBottomLabel(value.toInt()),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.black54,
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               );
@@ -399,7 +402,7 @@ class _ActivityChart extends StatelessWidget {
                         horizontalInterval: _getMaxY() / 4,
                         getDrawingHorizontalLine: (value) {
                           return FlLine(
-                            color: Colors.grey.shade200,
+                            color: colorScheme.outline.withOpacity(0.1),
                             strokeWidth: 1,
                           );
                         },
@@ -462,31 +465,34 @@ class _RecentActivityList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: colorScheme.surface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppShadows.cardSoft,
-        border: Border.all(color: Colors.white),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '最近活动',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
           if (records.isEmpty)
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text('暂无活动记录', style: TextStyle(color: Colors.black45)),
+                padding: const EdgeInsets.all(20.0),
+                child: Text('暂无活动记录', style: TextStyle(color: colorScheme.onSurfaceVariant)),
               ),
             )
           else
@@ -504,6 +510,8 @@ class _ActivityItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('MM/dd HH:mm');
 
     return Padding(
@@ -526,16 +534,16 @@ class _ActivityItem extends StatelessWidget {
               children: [
                 Text(
                   record.type.label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   dateFormat.format(record.startTime),
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -545,16 +553,16 @@ class _ActivityItem extends StatelessWidget {
             children: [
               Text(
                 '${record.durationMinutes} min',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 '${record.caloriesKcal} kcal',
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
+                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),

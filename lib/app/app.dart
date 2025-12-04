@@ -15,7 +15,9 @@ class LifeCoachApp extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: '日常教练',
-      theme: AppTheme.darkNeon(),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.light, // Default to light mode
       routerConfig: router,
       builder: (context, child) =>
           MeshBackground(child: child ?? const SizedBox.shrink()),
