@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../diet/application/diet_providers.dart';
 import '../../diet/domain/diet_models.dart';
 import '../../profile/application/profile_provider.dart';
+import '../../profile/application/user_profile_provider.dart';
 import '../../sleep/application/sleep_providers.dart';
 import '../../sleep/domain/sleep_record.dart';
 import '../../sports/application/sports_providers.dart';
@@ -22,9 +23,10 @@ final dashboardOverviewProvider = Provider<DashboardOverviewState>((ref) {
   final meals = ref.watch(dietRecordsProvider);
   final sleeps = ref.watch(sleepRecordsProvider);
   final sessions = ref.watch(focusSessionsProvider);
+  final userProfile = ref.watch(userProfileProvider);
   final profile = ref.watch(profileProvider);
 
-  final asyncValues = [workouts, meals, sleeps, sessions];
+  final asyncValues = [workouts, meals, sleeps, sessions, userProfile];
   if (asyncValues.any((value) => value.isLoading)) {
     return const DashboardOverviewState.loading();
   }
@@ -35,8 +37,13 @@ final dashboardOverviewProvider = Provider<DashboardOverviewState>((ref) {
     }
   }
 
+  // 优先使用服务器的用户资料，如果没有则使用本地默认值
+  final nickname = userProfile.value?.nickname ??
+                   userProfile.value?.username ??
+                   profile.overview.nickname;
+
   final overview = _buildOverview(
-    nickname: profile.overview.nickname,
+    nickname: nickname,
     workouts: workouts.value ?? const [],
     meals: meals.value ?? const [],
     sleeps: sleeps.value ?? const [],

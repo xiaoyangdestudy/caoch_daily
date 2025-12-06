@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:convert';
 
 import '../../../app/router/app_routes.dart';
 import '../../../shared/design/app_colors.dart';
@@ -9,6 +10,7 @@ import '../application/dashboard_providers.dart';
 import '../domain/dashboard_overview.dart';
 import '../domain/record_type.dart';
 import '../../profile/application/profile_provider.dart';
+import '../../profile/application/user_profile_provider.dart';
 import 'widgets/quick_record_sheet.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -39,7 +41,8 @@ class DashboardPage extends ConsumerWidget {
         : overview?.summary ?? '今日数据加载中...记得随手记录。';
     final vitality = hasError ? 0 : overview?.vitalityScore ?? 0;
 
-    // Get emoji from profile
+    // Get user avatar/emoji - 优先使用服务器头像，否则使用本地 emoji
+    final userProfileAsync = ref.watch(userProfileProvider);
     final profileState = ref.watch(profileProvider);
     final userEmoji = profileState.overview.emoji;
 
@@ -116,34 +119,8 @@ class DashboardPage extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.primaryLight,
-                            AppColors.primary,
-                          ],
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            offset: const Offset(0, 4),
-                            blurRadius: 12,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        userEmoji,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ),
+                    // User Avatar/Emoji
+                    _buildUserAvatar(userProfileAsync, userEmoji, colorScheme),
                   ],
                 ),
               ),
@@ -669,4 +646,85 @@ class _DashboardStatCardState extends State<DashboardStatCard> {
       ),
     );
   }
+}
+
+/// 构建用户头像/emoji显示
+Widget _buildUserAvatar(
+  AsyncValue<dynamic> userProfileAsync,
+  String fallbackEmoji,
+  ColorScheme colorScheme,
+) {
+  return userProfileAsync.when(
+    data: (userProfile) {
+      final avatar = userProfile?.avatar;
+
+      // 如果有服务器头像，显示头像
+      if (avatar != null && avatar.isNotEmpty) {
+        try {
+          final imageData = avatar.contains('base64,')
+              ? base64Decode(avatar.split(',').last)
+              : base64Decode(avatar);
+
+          return Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundImage: MemoryImage(imageData),
+            ),
+          );
+        } catch (e) {
+          // Base64解码失败，使用默认emoji
+        }
+      }
+
+      // 没有头像，显示默认emoji
+      return _buildDefaultEmojiAvatar(fallbackEmoji);
+    },
+    loading: () => _buildDefaultEmojiAvatar(fallbackEmoji),
+    error: (_, __) => _buildDefaultEmojiAvatar(fallbackEmoji),
+  );
+}
+
+/// 构建默认Emoji头像
+Widget _buildDefaultEmojiAvatar(String emoji) {
+  return Container(
+    width: 48,
+    height: 48,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          AppColors.primaryLight,
+          AppColors.primary,
+        ],
+      ),
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withOpacity(0.3),
+          offset: const Offset(0, 4),
+          blurRadius: 12,
+          spreadRadius: 0,
+        ),
+      ],
+    ),
+    alignment: Alignment.center,
+    child: Text(
+      emoji,
+      style: const TextStyle(fontSize: 24),
+    ),
+  );
 }
