@@ -24,30 +24,11 @@ import '../../shared/providers/api_provider.dart';
 import 'app_routes.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final hasCompletedOnboarding = ref.watch(hasCompletedOnboardingProvider);
-  final authStateAsync = ref.watch(authStateProvider);
-
-  // 始终使用相同的路由配置，让 SplashPage 处理初始化和导航
-  return _buildRouter(
-    isAuthenticated: authStateAsync.maybeWhen(
-      data: (value) => value,
-      orElse: () => false,
-    ),
-    hasCompletedOnboarding: hasCompletedOnboarding,
-    isLoading: authStateAsync.isLoading,
-  );
-});
-
-/// 创建路由配置
-GoRouter _buildRouter({
-  required bool isAuthenticated,
-  required bool hasCompletedOnboarding,
-  required bool isLoading,
-}) {
+  // 只创建一次 GoRouter，路由守卫通过 redirect 处理
   return GoRouter(
     debugLogDiagnostics: true,
     initialLocation: AppRoutes.splash,
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final location = state.matchedLocation;
 
       // Splash 页面始终可访问
@@ -60,8 +41,14 @@ GoRouter _buildRouter({
         return null;
       }
 
+      // 读取最新的认证状态
+      final container = ProviderScope.containerOf(context);
+      final authState = await container.read(authStateProvider.future);
+      final hasCompletedOnboarding =
+          container.read(hasCompletedOnboardingProvider);
+
       // 未登录时，重定向到登录页
-      if (!isAuthenticated) {
+      if (!authState) {
         return AppRoutes.login;
       }
 
@@ -140,7 +127,7 @@ GoRouter _buildRouter({
                 path: AppRoutes.home,
                 name: 'home',
                 pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: DashboardPage()),
+                    _buildShellPageTransition(state, const DashboardPage()),
               ),
             ],
           ),
@@ -150,7 +137,7 @@ GoRouter _buildRouter({
                 path: AppRoutes.review,
                 name: 'review',
                 pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: ReviewPage()),
+                    _buildShellPageTransition(state, const ReviewPage()),
               ),
             ],
           ),
@@ -160,7 +147,7 @@ GoRouter _buildRouter({
                 path: AppRoutes.moments,
                 name: 'moments',
                 pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: MomentsPage()),
+                    _buildShellPageTransition(state, const MomentsPage()),
               ),
             ],
           ),
@@ -170,7 +157,7 @@ GoRouter _buildRouter({
                 path: AppRoutes.stats,
                 name: 'stats',
                 pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: StatsPage()),
+                    _buildShellPageTransition(state, const StatsPage()),
               ),
             ],
           ),
@@ -180,7 +167,7 @@ GoRouter _buildRouter({
                 path: AppRoutes.profile,
                 name: 'profile',
                 pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: ProfilePage()),
+                    _buildShellPageTransition(state, const ProfilePage()),
               ),
             ],
           ),
@@ -190,5 +177,31 @@ GoRouter _buildRouter({
     errorPageBuilder: (context, state) => MaterialPage(
       child: Scaffold(body: Center(child: Text('页面走丢了：${state.error}'))),
     ),
+  );
+});
+
+CustomTransitionPage<void> _buildShellPageTransition(
+  GoRouterState state,
+  Widget child,
+) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    transitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 250),
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final eased = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: eased,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.98, end: 1).animate(eased),
+          child: child,
+        ),
+      );
+    },
   );
 }
