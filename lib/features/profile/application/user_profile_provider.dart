@@ -6,21 +6,22 @@ import '../domain/user_profile.dart';
 /// 用户资料Provider - 获取和管理用户资料
 final userProfileProvider =
     AsyncNotifierProvider<UserProfileNotifier, UserProfile?>(
-  UserProfileNotifier.new,
-);
+      UserProfileNotifier.new,
+    );
 
 /// 用户资料Notifier - 管理用户资料状态
 class UserProfileNotifier extends AsyncNotifier<UserProfile?> {
-  late final UserProfileRepository _repository;
+  UserProfileRepository get _repository =>
+      ref.read(userProfileRepositoryProvider);
 
   @override
   Future<UserProfile?> build() async {
-    _repository = ref.watch(userProfileRepositoryProvider);
+    final repository = ref.watch(userProfileRepositoryProvider);
     // Keep alive to prevent reloading when switching tabs
     ref.keepAlive();
 
     try {
-      return await _repository.getProfile();
+      return await repository.getProfile();
     } catch (e) {
       // 如果获取失败，返回 null
       return null;
