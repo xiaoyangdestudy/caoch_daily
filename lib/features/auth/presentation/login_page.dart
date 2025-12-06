@@ -3,14 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_routes.dart';
-import '../../../shared/providers/api_provider.dart';
-import '../../../shared/providers/preferences_provider.dart';
-import '../../../features/review/application/review_providers.dart';
-import '../../../features/sports/application/sports_providers.dart';
-import '../../../features/diet/application/diet_providers.dart';
-import '../../../features/sleep/application/sleep_providers.dart';
-import '../../../features/work/application/work_providers.dart';
-import '../../../features/moments/application/moments_provider.dart';
+import '../application/login_controller.dart';
 import 'widgets/auth_widgets.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -25,30 +18,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _isLoading = false;
-  bool _rememberPassword = false;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedCredentials();
-  }
-
-  void _loadSavedCredentials() {
-    final prefsService = ref.read(preferencesServiceProvider);
-    final shouldRemember = prefsService.shouldRememberPassword;
-    final savedUsername = prefsService.savedUsername;
-    final savedPassword = prefsService.savedPassword;
-
-    if (shouldRemember && savedUsername != null && savedPassword != null) {
-      setState(() {
-        _rememberPassword = true;
-        _usernameController.text = savedUsername;
-        _passwordController.text = savedPassword;
-      });
-    }
-  }
+  bool _hasAppliedSavedCredentials = false;
 
   @override
   void dispose() {
@@ -57,63 +27,57 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
+  void _applySavedCredentials(LoginState state) {
+    if (_hasAppliedSavedCredentials || !state.hasRestoredCredentials) {
+      return;
+    }
+
+    if (state.savedUsername != null && _usernameController.text.isEmpty) {
+      final username = state.savedUsername!;
+      _usernameController.value = TextEditingValue(
+        text: username,
+        selection: TextSelection.collapsed(offset: username.length),
+      );
+    }
+
+    if (state.savedPassword != null && _passwordController.text.isEmpty) {
+      final password = state.savedPassword!;
+      _passwordController.value = TextEditingValue(
+        text: password,
+        selection: TextSelection.collapsed(offset: password.length),
+      );
+    }
+
+    _hasAppliedSavedCredentials = true;
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final api = ref.read(apiClientProvider);
-      final username = _usernameController.text.trim();
-      final password = _passwordController.text;
-
-      // 登录
-      await api.login(username, password);
-
-      if (!mounted) return;
-
-      // 保存账号密码（如果勾选了记住密码）
-      final prefsService = ref.read(preferencesServiceProvider);
-      await prefsService.saveCredentials(
-        username: username,
-        password: password,
-        remember: _rememberPassword,
-      );
-
-      // 刷新认证状态
-      ref.invalidate(authStateProvider);
-      ref.invalidate(currentUsernameProvider);
-
-      // 登录成功后，刷新所有数据Provider以从服务器同步数据
-      // 由于所有repository已实现userId隔离（使用 {prefix}_{username} 作为key），
-      // 不同用户的数据不会互相干扰，所以不需要清除本地缓存。
-      // fetchAll()会优先从服务器获取，失败时降级到当前用户的本地缓存。
-      ref.invalidate(reviewEntriesProvider);
-      ref.invalidate(workoutListProvider);
-      ref.invalidate(dietRecordsProvider);
-      ref.invalidate(sleepRecordsProvider);
-      ref.invalidate(focusSessionsProvider);
-      ref.invalidate(momentsProvider);
-
-      if (mounted) {
-        // 登录成功，跳转到首页
-        context.go(AppRoutes.home);
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+    final loginState = ref.read(loginControllerProvider);
+    if (loginState.isLoading) {
+      return;
     }
+
+    final success = await ref
+        .read(loginControllerProvider.notifier)
+        .submit(
+          username: _usernameController.text.trim(),
+          password: _passwordController.text,
+        );
+
+    if (success && mounted) {
+      context.go(AppRoutes.home);
+    }
+  }
+
+  void _handleForgotPassword() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('找回密码功能即将上线，敬请期待。')));
   }
 
   void _goToRegister() {
@@ -122,6 +86,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loginState = ref.watch(loginControllerProvider);
+    _applySavedCredentials(loginState);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -143,10 +110,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(height: 20),
                     ShaderMask(
                       shaderCallback: (bounds) => LinearGradient(
-                        colors: [
-                          AuthColors.neonGreen,
-                          AuthColors.electricBlue,
-                        ],
+                        colors: [AuthColors.neonGreen, AuthColors.electricBlue],
                       ).createShader(bounds),
                       child: const Text(
                         '即刻开练，释放你的多巴胺！',
@@ -173,7 +137,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             color: AuthColors.cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: AuthColors.neonGreen.withValues(alpha: 0.2),
+                              color: AuthColors.neonGreen.withValues(
+                                alpha: 0.2,
+                              ),
                               width: 1,
                             ),
                             boxShadow: [
@@ -195,7 +161,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   label: '用户名',
                                   hint: '邮箱 / 手机号',
                                   icon: Icons.person_outline_rounded,
-                                  enabled: !_isLoading,
+                                  enabled: !loginState.isLoading,
                                   textInputAction: TextInputAction.next,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
@@ -214,7 +180,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   hint: '请输入密码',
                                   icon: Icons.lock_outline_rounded,
                                   isPassword: true,
-                                  enabled: !_isLoading,
+                                  enabled: !loginState.isLoading,
                                   textInputAction: TextInputAction.done,
                                   onSubmitted: _submit,
                                   validator: (value) {
@@ -229,7 +195,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                                 // Remember Password & Forgot Password
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     // Remember Password
                                     Row(
@@ -238,16 +205,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           height: 24,
                                           width: 24,
                                           child: Checkbox(
-                                            value: _rememberPassword,
-                                            onChanged: _isLoading
+                                            value: loginState.rememberPassword,
+                                            onChanged: loginState.isLoading
                                                 ? null
                                                 : (value) {
-                                                    setState(() {
-                                                      _rememberPassword = value ?? false;
-                                                    });
+                                                    ref
+                                                        .read(
+                                                          loginControllerProvider
+                                                              .notifier,
+                                                        )
+                                                        .setRememberPassword(
+                                                          value ?? false,
+                                                        );
                                                   },
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(6),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
                                             side: BorderSide(
                                               color: AuthColors.textGray,
@@ -259,12 +232,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         ),
                                         const SizedBox(width: 8),
                                         GestureDetector(
-                                          onTap: _isLoading
+                                          onTap: loginState.isLoading
                                               ? null
                                               : () {
-                                                  setState(() {
-                                                    _rememberPassword = !_rememberPassword;
-                                                  });
+                                                  ref
+                                                      .read(
+                                                        loginControllerProvider
+                                                            .notifier,
+                                                      )
+                                                      .setRememberPassword(
+                                                        !loginState
+                                                            .rememberPassword,
+                                                      );
                                                 },
                                           child: const Text(
                                             '记住密码',
@@ -279,13 +258,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                                     // Forgot Password
                                     TextButton(
-                                      onPressed: () {
-                                        // TODO: Implement forgot password
-                                      },
+                                      onPressed: loginState.isLoading
+                                          ? null
+                                          : _handleForgotPassword,
                                       style: TextButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
                                       ),
                                       child: const Text(
                                         '忘记密码？',
@@ -302,15 +282,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 AnimatedSize(
                                   duration: const Duration(milliseconds: 300),
                                   curve: Curves.easeInOut,
-                                  child: _errorMessage != null
+                                  child: loginState.errorMessage != null
                                       ? Padding(
-                                          padding: const EdgeInsets.only(top: 16),
+                                          padding: const EdgeInsets.only(
+                                            top: 16,
+                                          ),
                                           child: Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: Colors.red.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                                              color: Colors.red.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: Colors.red.withValues(
+                                                  alpha: 0.3,
+                                                ),
+                                              ),
                                             ),
                                             child: Row(
                                               children: [
@@ -322,7 +311,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                                 const SizedBox(width: 10),
                                                 Expanded(
                                                   child: Text(
-                                                    _errorMessage!,
+                                                    loginState.errorMessage!,
                                                     style: TextStyle(
                                                       color: Colors.red[300],
                                                       fontSize: 13,
@@ -341,7 +330,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 // Login Button
                                 AuthButton(
                                   onPressed: _submit,
-                                  isLoading: _isLoading,
+                                  isLoading: loginState.isLoading,
                                   text: '登 录',
                                 ),
                               ],
@@ -361,17 +350,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _SocialIcon(
-                              icon: Icons.wechat, // Using material icons as placeholder
+                              icon: Icons
+                                  .wechat, // Using material icons as placeholder
                               onTap: () {},
                             ),
                             const SizedBox(width: 20),
                             _SocialIcon(
-                              icon: Icons.alternate_email, // Using material icons as placeholder
+                              icon: Icons
+                                  .alternate_email, // Using material icons as placeholder
                               onTap: () {},
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
 
                         Row(
@@ -385,9 +376,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             ),
                             TextButton(
-                              onPressed: _isLoading ? null : _goToRegister,
+                              onPressed: loginState.isLoading
+                                  ? null
+                                  : _goToRegister,
                               style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                               ),
                               child: const Text(
                                 '立即注册',
@@ -402,7 +397,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -434,11 +429,7 @@ class _SocialIcon extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.1),
           border: Border.all(color: Colors.transparent),
         ),
-        child: Icon(
-          icon,
-          color: AuthColors.textGray,
-          size: 20,
-        ),
+        child: Icon(icon, color: AuthColors.textGray, size: 20),
       ),
     );
   }

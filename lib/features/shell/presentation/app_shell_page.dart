@@ -1,19 +1,64 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class AppShellPage extends StatefulWidget {
+import '../../dashboard/application/dashboard_providers.dart';
+import '../../diet/application/diet_providers.dart';
+import '../../profile/application/user_profile_provider.dart';
+import '../../sleep/application/sleep_providers.dart';
+import '../../sports/application/sports_providers.dart';
+import '../../work/application/work_providers.dart';
+
+class AppShellPage extends ConsumerStatefulWidget {
   const AppShellPage({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  State<AppShellPage> createState() => _AppShellPageState();
+  ConsumerState<AppShellPage> createState() => _AppShellPageState();
 }
 
-class _AppShellPageState extends State<AppShellPage> {
+class _AppShellPageState extends ConsumerState<AppShellPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _switchController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _warmupCoreData());
+    _switchController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    )..value = 1;
+    final curve = CurvedAnimation(
+      parent: _switchController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.92, end: 1).animate(curve);
+    _scaleAnimation = Tween<double>(begin: 0.98, end: 1).animate(curve);
+  }
+
+  void _warmupCoreData() {
+    Future.wait([
+      ref.read(workoutListProvider.future),
+      ref.read(dietRecordsProvider.future),
+      ref.read(sleepRecordsProvider.future),
+      ref.read(focusSessionsProvider.future),
+      ref.read(userProfileProvider.future),
+    ]).catchError((_) {
+      // 预加载失败时静默，避免影响导航流畅性
+    });
+    ref.read(dashboardOverviewProvider);
+  }
+
   void _onDestinationSelected(int index) {
+    _switchController.forward(from: 0);
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
@@ -21,11 +66,23 @@ class _AppShellPageState extends State<AppShellPage> {
   }
 
   @override
+  void dispose() {
+    _switchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
-      body: widget.navigationShell,
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: widget.navigationShell,
+        ),
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: _BottomBar(
@@ -176,10 +233,7 @@ class _NavItem extends StatelessWidget {
                     switchInCurve: Curves.easeInOut,
                     switchOutCurve: Curves.easeInOut,
                     transitionBuilder: (child, animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
+                      return FadeTransition(opacity: animation, child: child);
                     },
                     child: Icon(
                       icon,
@@ -200,7 +254,9 @@ class _NavItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                color: selected
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
                 height: 1.2,
               ),
               child: Text(label),

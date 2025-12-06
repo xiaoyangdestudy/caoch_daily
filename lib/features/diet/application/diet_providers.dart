@@ -19,13 +19,13 @@ final dietRecordsProvider =
     );
 
 class DietRecordsNotifier extends AsyncNotifier<List<MealRecord>> {
-  late final DietRepository _repository;
+  DietRepository get _repository => ref.read(dietRepositoryProvider);
   final Uuid _uuid = const Uuid();
 
   @override
   Future<List<MealRecord>> build() async {
-    _repository = ref.watch(dietRepositoryProvider);
-    return _repository.fetchAll();
+    final repository = ref.watch(dietRepositoryProvider);
+    return repository.fetchAll();
   }
 
   Future<void> addMeal(MealRecord record) async {

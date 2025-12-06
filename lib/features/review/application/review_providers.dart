@@ -19,15 +19,15 @@ final reviewEntriesProvider =
     );
 
 class ReviewEntriesNotifier extends AsyncNotifier<List<ReviewEntry>> {
-  late final ReviewRepository _repository;
+  ReviewRepository get _repository => ref.read(reviewRepositoryProvider);
   final Uuid _uuid = const Uuid();
 
   @override
   Future<List<ReviewEntry>> build() async {
-    _repository = ref.watch(reviewRepositoryProvider);
+    final repository = ref.watch(reviewRepositoryProvider);
     // Keep alive to prevent reloading when switching tabs
     ref.keepAlive();
-    return _repository.fetchAll();
+    return repository.fetchAll();
   }
 
   Future<void> addReview({

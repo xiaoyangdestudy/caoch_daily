@@ -19,13 +19,13 @@ final focusSessionsProvider =
     );
 
 class FocusSessionsNotifier extends AsyncNotifier<List<FocusSession>> {
-  late final FocusRepository _repository;
+  FocusRepository get _repository => ref.read(focusRepositoryProvider);
   final Uuid _uuid = const Uuid();
 
   @override
   Future<List<FocusSession>> build() async {
-    _repository = ref.watch(focusRepositoryProvider);
-    return _repository.fetchAll();
+    final repository = ref.watch(focusRepositoryProvider);
+    return repository.fetchAll();
   }
 
   Future<void> logSession({

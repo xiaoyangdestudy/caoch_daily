@@ -22,7 +22,8 @@
       "Bash(flutter build web:*)",
       "Bash(flutter clean:*)",
       "Bash(flutter pub get:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(node migrate_profile_fields.js:*)"
     ],
     "deny": [],
     "ask": []

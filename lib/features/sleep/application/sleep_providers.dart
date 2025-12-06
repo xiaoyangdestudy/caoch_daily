@@ -20,13 +20,13 @@ final sleepRecordsProvider =
     );
 
 class SleepRecordsNotifier extends AsyncNotifier<List<SleepRecord>> {
-  late final SleepRepository _repository;
+  SleepRepository get _repository => ref.read(sleepRepositoryProvider);
   final Uuid _uuid = const Uuid();
 
   @override
   Future<List<SleepRecord>> build() async {
-    _repository = ref.watch(sleepRepositoryProvider);
-    return _repository.fetchAll();
+    final repository = ref.watch(sleepRepositoryProvider);
+    return repository.fetchAll();
   }
 
   Future<void> saveRecord({

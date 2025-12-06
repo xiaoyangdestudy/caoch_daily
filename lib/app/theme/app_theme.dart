@@ -49,6 +49,15 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.lightBackground,
       fontFamily: 'PingFang SC',
       brightness: Brightness.light,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        },
+      ),
 
       // App Bar
       appBarTheme: const AppBarTheme(
@@ -183,7 +192,10 @@ class AppTheme {
           color: AppColors.lightTextSecondary,
           fontFamily: 'PingFang SC',
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
 
       // Bottom Sheet
@@ -247,6 +259,15 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.darkBackground,
       fontFamily: 'PingFang SC',
       brightness: Brightness.dark,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        },
+      ),
 
       // App Bar
       appBarTheme: const AppBarTheme(
@@ -381,7 +402,10 @@ class AppTheme {
           color: AppColors.darkTextSecondary,
           fontFamily: 'PingFang SC',
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
 
       // Bottom Sheet

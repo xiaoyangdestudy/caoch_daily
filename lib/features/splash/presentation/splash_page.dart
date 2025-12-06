@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
-import '../../../shared/providers/preferences_provider.dart';
 import '../../../shared/providers/api_provider.dart';
+import '../../../shared/providers/preferences_provider.dart';
 
-/// Splash Screen - 应用启动页，展示品牌Logo和加载动画
+/// Splash Screen - 显示启动图并在后台完成初始化
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -16,50 +16,33 @@ class SplashPage extends ConsumerStatefulWidget {
 
 class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late final AnimationController _progressController;
 
   @override
   void initState() {
     super.initState();
-
-    // 初始化动画
-    _animationController = AnimationController(
+    _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 600),
     );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
-
-    _animationController.forward();
-
-    // 执行初始化并导航
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _progressController.forward();
+      }
+    });
     _initializeAndNavigate();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
   /// 初始化应用并导航到相应页面
   Future<void> _initializeAndNavigate() async {
     try {
-      // 确保动画至少显示 2 秒
+      // 启动画面至少保持 2 秒
       await Future.delayed(const Duration(seconds: 2));
 
       // 等待认证状态加载
@@ -69,19 +52,12 @@ class _SplashPageState extends ConsumerState<SplashPage>
       if (!mounted) return;
 
       // 根据状态决定跳转页面
-      String targetRoute;
-      if (!authState) {
-        targetRoute = AppRoutes.login;
-      } else if (!hasCompletedOnboarding) {
-        targetRoute = AppRoutes.onboarding;
-      } else {
-        targetRoute = AppRoutes.home;
-      }
+      final targetRoute = !authState
+          ? AppRoutes.login
+          : (!hasCompletedOnboarding ? AppRoutes.onboarding : AppRoutes.home);
 
-      // 导航到目标页面
       context.go(targetRoute);
-    } catch (e) {
-      // 出错时默认跳转到登录页
+    } catch (_) {
       if (mounted) {
         context.go(AppRoutes.login);
       }
@@ -90,62 +66,50 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: child,
-              ),
-            );
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo 图标
-              Icon(
-                Icons.auto_graph_rounded,
-                size: 100,
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
-              const SizedBox(height: 24),
-              // 应用名称
-              Text(
-                'Coach Daily',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              // 副标题
-              Text(
-                '每日打卡 · 成就更好的自己',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
-                    ),
-              ),
-              const SizedBox(height: 60),
-              // 加载指示器
-              SizedBox(
-                width: 30,
-                height: 30,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-            ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 填满屏幕的背景图（必要时按比例裁切，杜绝黑边）
+          Image.asset(
+            'assets/images/startScreen.png',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            filterQuality: FilterQuality.high,
           ),
-        ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: MediaQuery.of(context).padding.bottom + 64,
+            child: FadeTransition(
+              opacity: _progressController,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '正在加载你的专属数据...',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

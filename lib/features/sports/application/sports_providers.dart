@@ -12,17 +12,17 @@ final workoutRepositoryProvider = Provider((ref) {
 });
 
 final workoutListProvider =
-    AsyncNotifierProvider<WorkoutListNotifier, List<WorkoutRecord>>(() {
-      return WorkoutListNotifier();
-    });
+    AsyncNotifierProvider<WorkoutListNotifier, List<WorkoutRecord>>(
+      WorkoutListNotifier.new,
+    );
 
 class WorkoutListNotifier extends AsyncNotifier<List<WorkoutRecord>> {
-  late final WorkoutRepository _repository;
+  WorkoutRepository get _repository => ref.read(workoutRepositoryProvider);
 
   @override
   Future<List<WorkoutRecord>> build() async {
-    _repository = ref.read(workoutRepositoryProvider);
-    return _repository.getAll();
+    final repository = ref.watch(workoutRepositoryProvider);
+    return repository.getAll();
   }
 
   Future<void> addRecord(WorkoutRecord record) async {
