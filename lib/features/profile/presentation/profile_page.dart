@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -266,29 +268,9 @@ class _ProfileHeader extends StatelessWidget {
             // 头像
             GestureDetector(
               onTap: onEdit,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.candyPurple,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: AppShadows.purple3d,
-                  image: userProfile?.avatar != null
-                      ? DecorationImage(
-                          image: MemoryImage(
-                            base64Decode(userProfile!.avatar!.split(',').last),
-                          ),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: userProfile?.avatar == null
-                    ? Text(
-                        overview.emoji,
-                        style: const TextStyle(fontSize: 40),
-                      )
-                    : null,
+              child: _AsyncAvatarImage(
+                avatarBase64: userProfile?.avatar,
+                fallbackEmoji: overview.emoji,
               ),
             ),
             const SizedBox(width: 20),
@@ -1078,3 +1060,94 @@ class _DataSyncSection extends ConsumerWidget {
   }
 }
 
+/// 异步头像解码 - 在后台线程解码 Base64，避免阻塞主线程
+class _AsyncAvatarImage extends StatelessWidget {
+  const _AsyncAvatarImage({
+    required this.avatarBase64,
+    required this.fallbackEmoji,
+  });
+
+  final String? avatarBase64;
+  final String fallbackEmoji;
+
+  /// 在后台线程解码 Base64
+  static Future<Uint8List> _decodeBase64(String base64String) async {
+    return compute<String, Uint8List>(_decodeBase64Isolate, base64String);
+  }
+
+  /// Isolate 中执行的解码函数
+  static Uint8List _decodeBase64Isolate(String base64String) {
+    // 移除 data:image/xxx;base64, 前缀
+    final pureBase64 = base64String.contains(',')
+        ? base64String.split(',').last
+        : base64String;
+    return base64Decode(pureBase64);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarBase64 == null || avatarBase64!.isEmpty) {
+      // 无头像，显示 emoji
+      return _buildEmojiAvatar(context);
+    }
+
+    return FutureBuilder<Uint8List>(
+      future: _decodeBase64(avatarBase64!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          // 解码成功，显示图片
+          return Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: AppShadows.purple3d,
+              image: DecorationImage(
+                image: MemoryImage(snapshot.data!),
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          // 解码失败，显示 emoji
+          return _buildEmojiAvatar(context);
+        } else {
+          // 加载中，显示占位符
+          return Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.candyPurple.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: AppShadows.purple3d,
+            ),
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildEmojiAvatar(BuildContext context) {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: AppColors.candyPurple,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppShadows.purple3d,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        fallbackEmoji,
+        style: const TextStyle(fontSize: 40),
+      ),
+    );
+  }
+}

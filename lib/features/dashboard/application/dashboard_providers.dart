@@ -26,21 +26,23 @@ final dashboardOverviewProvider = Provider<DashboardOverviewState>((ref) {
   final userProfile = ref.watch(userProfileProvider);
   final profile = ref.watch(profileProvider);
 
-  final asyncValues = [workouts, meals, sleeps, sessions, userProfile];
-  if (asyncValues.any((value) => value.isLoading)) {
+  // 只检查核心数据的加载状态，userProfile 错误不影响整体
+  final coreAsyncValues = [workouts, meals, sleeps, sessions];
+  if (coreAsyncValues.any((value) => value.isLoading)) {
     return const DashboardOverviewState.loading();
   }
 
-  for (final value in asyncValues) {
+  for (final value in coreAsyncValues) {
     if (value.hasError) {
       return DashboardOverviewState.error(value.error ?? 'unknown');
     }
   }
 
-  // 优先使用服务器的用户资料，如果没有则使用本地默认值
-  final nickname = userProfile.value?.nickname ??
-                   userProfile.value?.username ??
-                   profile.overview.nickname;
+  // 优先使用服务器的用户资料，如果没有或出错则使用本地默认值
+  final nickname = userProfile.maybeWhen(
+    data: (data) => data?.nickname ?? data?.username,
+    orElse: () => null,
+  ) ?? profile.overview.nickname;
 
   final overview = _buildOverview(
     nickname: nickname,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../shared/design/app_colors.dart';
@@ -751,35 +753,37 @@ Widget _buildUserAvatar(
     data: (userProfile) {
       final avatar = userProfile?.avatar;
 
-      // 如果有服务器头像，显示头像
+      // 如果有服务器头像，显示头像（异步解码）
       if (avatar != null && avatar.isNotEmpty) {
-        try {
-          final imageData = avatar.contains('base64,')
-              ? base64Decode(avatar.split(',').last)
-              : base64Decode(avatar);
-
-          return Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  offset: const Offset(0, 4),
-                  blurRadius: 12,
-                  spreadRadius: 0,
+        return FutureBuilder<Uint8List>(
+          future: compute<String, Uint8List>(_decodeAvatarBase64, avatar),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: CircleAvatar(
-              radius: 24,
-              backgroundImage: MemoryImage(imageData),
-            ),
-          );
-        } catch (e) {
-          // Base64解码失败，使用默认emoji
-        }
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundImage: MemoryImage(snapshot.data!),
+                ),
+              );
+            } else {
+              // 解码中或失败，显示默认 emoji
+              return _buildDefaultEmojiAvatar(fallbackEmoji);
+            }
+          },
+        );
       }
 
       // 没有头像，显示默认emoji
@@ -788,6 +792,14 @@ Widget _buildUserAvatar(
     loading: () => _buildDefaultEmojiAvatar(fallbackEmoji),
     error: (_, __) => _buildDefaultEmojiAvatar(fallbackEmoji),
   );
+}
+
+/// 在 Isolate 中解码 Base64 头像
+Uint8List _decodeAvatarBase64(String avatarString) {
+  final pureBase64 = avatarString.contains(',')
+      ? avatarString.split(',').last
+      : avatarString;
+  return base64Decode(pureBase64);
 }
 
 /// 构建默认Emoji头像
