@@ -160,26 +160,6 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_focus_user_time ON focus_sessions(user_id, start_time);
   `);
 
-  // 阅读记录表
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS reading_records (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      book_title TEXT NOT NULL,
-      book_author TEXT,
-      start_time TEXT NOT NULL,
-      duration_minutes INTEGER NOT NULL,
-      pages_read INTEGER,
-      notes TEXT,
-      excerpt TEXT,
-      ai_summary TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_reading_user_time ON reading_records(user_id, start_time);
-  `);
-
   console.log('✓ Database initialized successfully');
   console.log(`✓ Database location: ${path.resolve(dbPath)}`);
 }

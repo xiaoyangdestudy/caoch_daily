@@ -508,8 +508,6 @@ class _DashboardStatCardState extends State<DashboardStatCard> {
         return AppShadows.blue3d;
       case RecordType.work:
         return AppShadows.purple3d;
-      case RecordType.reading:
-        return AppShadows.green3d;
     }
   }
 

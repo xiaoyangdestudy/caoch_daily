@@ -17,7 +17,6 @@ import '../../features/diet/presentation/ai_food_recognition_page.dart';
 import '../../features/sports/presentation/manual_entry_page.dart';
 import '../../features/sleep/presentation/sleep_page.dart';
 import '../../features/work/presentation/work_page.dart';
-import '../../features/reading/presentation/reading_page.dart';
 import '../../features/moments/presentation/moments_page.dart';
 import '../../features/moments/presentation/create_moment_page.dart';
 import '../../shared/providers/preferences_provider.dart';
@@ -125,11 +124,6 @@ GoRouter _buildRouter({
         path: AppRoutes.work,
         name: 'work',
         builder: (context, state) => const WorkPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.reading,
-        name: 'reading',
-        builder: (context, state) => const ReadingPage(),
       ),
       GoRoute(
         path: AppRoutes.createMoment,

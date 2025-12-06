@@ -16,7 +16,13 @@
       "Bash(cat:*)",
       "Bash(findstr:*)",
       "Bash(ssh:*)",
-      "Bash(scp:*)"
+      "Bash(scp:*)",
+      "Bash(git fetch:*)",
+      "Bash(rm:*)",
+      "Bash(flutter build web:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

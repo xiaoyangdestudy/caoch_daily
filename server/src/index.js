@@ -14,7 +14,6 @@ const workoutRoutes = require('./routes/workouts');
 const mealRoutes = require('./routes/meals');
 const sleepRoutes = require('./routes/sleep');
 const focusRoutes = require('./routes/focus');
-const readingRoutes = require('./routes/reading');
 const syncRoutes = require('./routes/sync');
 
 const app = express();
@@ -105,7 +104,6 @@ app.get('/', (req, res) => {
       meals: '/api/meals',
       sleep: '/api/sleep',
       focus: '/api/focus',
-      reading: '/api/reading',
       sync: '/api/sync'
     }
   });
@@ -119,7 +117,6 @@ app.use('/api/workouts', generalLimiter, workoutRoutes);
 app.use('/api/meals', generalLimiter, mealRoutes);
 app.use('/api/sleep', generalLimiter, sleepRoutes);
 app.use('/api/focus', generalLimiter, focusRoutes);
-app.use('/api/reading', generalLimiter, readingRoutes);
 app.use('/api/sync', generalLimiter, syncRoutes);
 
 // 404处理
@@ -155,8 +152,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('  POST   /api/sleep');
   console.log('  GET    /api/focus');
   console.log('  POST   /api/focus');
-  console.log('  GET    /api/reading');
-  console.log('  POST   /api/reading');
   console.log('  POST   /api/sync/batch');
   console.log('  GET    /api/sync/last-sync');
   console.log('======================================');

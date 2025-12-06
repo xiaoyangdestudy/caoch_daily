@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/design/app_colors.dart';
 
-enum RecordType { exercise, diet, sleep, work, reading }
+enum RecordType { exercise, diet, sleep, work }
 
 extension RecordTypeX on RecordType {
   String get label {
@@ -15,8 +15,6 @@ extension RecordTypeX on RecordType {
         return '睡眠';
       case RecordType.work:
         return '工作';
-      case RecordType.reading:
-        return '阅读';
     }
   }
 
@@ -30,8 +28,6 @@ extension RecordTypeX on RecordType {
         return Icons.nights_stay_rounded;
       case RecordType.work:
         return Icons.work_outline;
-      case RecordType.reading:
-        return Icons.menu_book_rounded;
     }
   }
 
@@ -45,8 +41,6 @@ extension RecordTypeX on RecordType {
         return AppColors.sleep;
       case RecordType.work:
         return AppColors.work;
-      case RecordType.reading:
-        return AppColors.reading;
     }
   }
 
@@ -75,12 +69,6 @@ extension RecordTypeX on RecordType {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [AppColors.workLight, AppColors.work],
-        );
-      case RecordType.reading:
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.readingLight, AppColors.reading],
         );
     }
   }

@@ -15,7 +15,6 @@ class AppRoutes {
   static const manualSportsEntry = '/sports/manual-entry';
   static const sleep = '/sleep';
   static const work = '/work';
-  static const reading = '/reading';
   static const moments = '/app/moments';
   static const createMoment = '/moments/create';
   static const login = '/login';
