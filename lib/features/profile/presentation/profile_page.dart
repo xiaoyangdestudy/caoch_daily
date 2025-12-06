@@ -269,6 +269,7 @@ class _ProfileHeader extends StatelessWidget {
             GestureDetector(
               onTap: onEdit,
               child: _AsyncAvatarImage(
+                key: ValueKey(userProfile?.avatar ?? 'default'),
                 avatarBase64: userProfile?.avatar,
                 fallbackEmoji: overview.emoji,
               ),

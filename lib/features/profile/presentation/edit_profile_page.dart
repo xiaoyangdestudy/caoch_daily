@@ -83,6 +83,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     });
 
     try {
+      // 保存资料
       await ref.read(userProfileProvider.notifier).updateProfile(
             nickname: _nicknameController.text.trim().isEmpty
                 ? null
@@ -96,11 +97,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 : _emailController.text.trim(),
           );
 
+      // 等待状态更新完成
+      await Future.delayed(const Duration(milliseconds: 300));
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('资料更新成功')),
         );
-        Navigator.of(context).pop();
+        // 返回上一页，触发刷新
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
