@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1064,6 +1063,7 @@ class _DataSyncSection extends ConsumerWidget {
 /// 异步头像解码 - 在后台线程解码 Base64，避免阻塞主线程
 class _AsyncAvatarImage extends StatelessWidget {
   const _AsyncAvatarImage({
+    super.key,
     required this.avatarBase64,
     required this.fallbackEmoji,
   });
