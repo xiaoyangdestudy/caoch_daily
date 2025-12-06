@@ -948,6 +948,7 @@ class _DataSyncSection extends ConsumerWidget {
       // 刷新所有相关Provider
       ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
+      ref.invalidate(userProfileProvider); // 加载新用户的资料
       ref.invalidate(reviewRepositoryProvider);
       ref.invalidate(reviewEntriesProvider);
     }
@@ -1041,6 +1042,7 @@ class _DataSyncSection extends ConsumerWidget {
       // 注意：不清除本地数据，因为已有userId隔离，同一用户重新登录可快速恢复
       ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
+      ref.invalidate(userProfileProvider); // 清除用户资料缓存
       ref.invalidate(reviewEntriesProvider);
       ref.invalidate(workoutListProvider);
       ref.invalidate(dietRecordsProvider);

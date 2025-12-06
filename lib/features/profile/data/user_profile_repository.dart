@@ -24,10 +24,13 @@ class UserProfileRepository {
   /// 更新用户资料
   Future<UserProfile> updateProfile(UpdateProfileRequest request) async {
     try {
-      final response = await _apiClient.dio.put(
-        '/profile',
-        data: request.toJson(),
-      );
+      final data = request.toJson()..removeWhere((key, value) => value == null);
+
+      if (data.isEmpty) {
+        throw Exception('No fields to update');
+      }
+
+      final response = await _apiClient.dio.put('/profile', data: data);
       return UserProfile.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);

@@ -4,6 +4,7 @@ import '../../../shared/providers/api_provider.dart';
 import '../../../shared/providers/preferences_provider.dart';
 import '../../diet/application/diet_providers.dart';
 import '../../moments/application/moments_provider.dart';
+import '../../profile/application/user_profile_provider.dart';
 import '../../review/application/review_providers.dart';
 import '../../sleep/application/sleep_providers.dart';
 import '../../sports/application/sports_providers.dart';
@@ -123,6 +124,7 @@ class LoginController extends Notifier<LoginState> {
   void _refreshFeatureProviders() {
     ref.invalidate(authStateProvider);
     ref.invalidate(currentUsernameProvider);
+    ref.invalidate(userProfileProvider);
     ref.invalidate(reviewEntriesProvider);
     ref.invalidate(workoutListProvider);
     ref.invalidate(dietRecordsProvider);

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../shared/providers/api_provider.dart';
+import '../../../features/profile/application/user_profile_provider.dart';
 import '../../../features/review/application/review_providers.dart';
 import 'widgets/auth_widgets.dart';
 
@@ -54,6 +55,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       // 刷新认证状态
       ref.invalidate(authStateProvider);
       ref.invalidate(currentUsernameProvider);
+      ref.invalidate(userProfileProvider);
 
       // 注册成功后，从服务器同步数据（对于新用户，这会确保本地数据被清空）
       try {
